@@ -1,3 +1,3 @@
 source 'https://gems.ruby-china.org'
 
-gem 'github-pages', '127'
+gem 'github-pages', '140'
