@@ -17,6 +17,8 @@ categories: jekyll update
 | ^          | 所有依赖目标的集合（去重），以空格分隔 |
 | +          | 所有依赖目标的集合（不去重），以空格分隔 |
 
+接下来就是各种各样的隐含规则了。
+
 ```make
 %.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $?
