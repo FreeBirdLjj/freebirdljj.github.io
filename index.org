@@ -1,0 +1,6 @@
+#+setupfile: common.org
+#+options: toc:nil num:nil
+#+title: FreeBirdLjj's blog
+
+* [[file:Implicit Rules of `make`.org][Implicit Rules of `make`]]
+* [[file:Golang guards.org][Golang guards]]
