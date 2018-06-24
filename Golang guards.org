@@ -1,5 +1,5 @@
 #+setupfile: common.org
-#+title: Golang guards
+#+title: Golang Guards
 
 golang 的 =defer= 机制用来在函数返回时执行清理操作。
 本文讲述的小技巧是利用返回类型为 =func()= 的函数作为 guard function。

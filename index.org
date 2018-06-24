@@ -3,4 +3,4 @@
 #+title: FreeBirdLjj's blog
 
 * [[file:Implicit Rules of `make`.org][Implicit Rules of `make`]]
-* [[file:Golang guards.org][Golang guards]]
+* [[file:Golang Guards.org][Golang Guards]]
