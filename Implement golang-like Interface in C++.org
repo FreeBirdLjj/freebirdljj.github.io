@@ -1,0 +1,75 @@
+#+setupfile: common.org
+#+title: Implement golang-like Interface in C++
+
+golang 的接口是 "duck-typing" 的，不需要显式声明实现某一接口，只需要实现接口中的方法就可以了。
+
+我们在 C++ 中的任务就是模拟 golang 的这个接口机制。
+我举一个具体的例子：我们现在有一个 =closer= 接口和一个 =finalize()= 函数，然后我们希望对于任何一个实现了 =void close()= 函数的类都能够通过一个 wrapper 传给 =finalize()= 作为参数。
+
+=closer= 和 =finalize()= 的定义如下：
+
+#+BEGIN_SRC cpp
+class closer
+{
+public:
+	virtual void close() = 0;
+};
+
+void finalize(closer * c)
+{
+	c->close();
+}
+#+END_SRC
+
+另外我们有一个 =my_class= 实现了一个 =close()= 方法，但并未显式继承 =closer= 接口：
+
+#+BEGIN_SRC cpp
+class my_class
+{
+public:
+	void close()
+	{
+		std::cout << "myclass::close()" << std::endl;
+	}
+};
+#+END_SRC
+
+接下来就是我们的 wrapper 了。
+这个 wrapper 就叫 =implement()= 好了，最简单的用例是这样的：
+
+#+BEGIN_SRC cpp
+void example()
+{
+	my_class mc;
+	finalize(implement(mc));	// should print out "myclass::close()".
+}
+#+END_SRC
+
+要实现“按名调用”，当然得用到 template 了（所以其实顺着这个思路也可以在 C 中用宏实现）。
+
+#+BEGIN_SRC cpp
+template<class intf, class impl>
+intf * implement(impl &x);
+
+template<class impl>
+closer * implement(impl &x)
+{
+	class closer_impl : public closer
+	{
+	private:
+		impl &p_;
+	public:
+		closer_impl(impl &p) : p_(p) {}
+		virtual void close() { p_.close(); }
+	};
+	return new closer_impl(x);
+}
+#+END_SRC
+
+这里简单实现表现个思路，没有写出非引用的其它版本，也没有处理生命周期（所以这个函数的返回值只在原来传入值析构前有效）。
+不过希望达到的效果还是达到了。
+
+
+思考这个问题并不意味着我们要在 C++ 里像 golang 那样写，也不意味着 golang 的写法比 C++ 的更好（更简单或更优雅）。
+事实上我个人对这两种说法都持否定的意见。
+意义在于：如果我们能够对任何两个编程语言都能互相实现其特性，那么我们的编程技巧就不会囿于编程语言；另外用两种语言实现同一语言特性（虽然可能对于其中一个是原生的）也有助于我们看清这一特性的本质和更好地对比两门语言。

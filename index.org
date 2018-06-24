@@ -2,5 +2,6 @@
 #+options: toc:nil num:nil
 #+title: FreeBirdLjj's blog
 
+* [[file:Implement golang-like Interface in C++.org][Implement golang-like Interface in C++]]
 * [[file:Implicit Rules of `make`.org][Implicit Rules of `make`]]
 * [[file:Golang Guards.org][Golang Guards]]
