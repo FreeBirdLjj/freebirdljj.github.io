@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2018-09-05 Wed 03:05 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Implement Monad in Language with Coroutine</title>
+<meta name="generator" content="Org mode" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<link rel="stylesheet" type="text/css" href="css/worg.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="https://freebirdljj.github.io"> UP </a>
+ |
+ <a accesskey="H" href="https://freebirdljj.github.io"> HOME </a>
+</div><div id="content">
+<h1 class="title">Implement Monad in Language with Coroutine</h1>
+<p>
+Haskell 的 monad 配合上 do notation 的语法糖在实际中可以节省若干代码（类似 golang 的 error check）或陷入回调地狱。
+这么有用的语言特性当然也希望在别的编程语言中也能享受到。
+</p>
+
+<p>
+在 Haskell 中 do notation 将回调风格的程序包装为普通的非回调的形式，而在其它的编程语言里 coroutine 则是用来处理回调地狱的好办法。
+所以可以考虑用 coroutine 来模拟这套机制。
+</p>
+
+<p>
+举个例子，比如下面这段程序：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-haskell"><span style="color: #bc6ec5; font-weight: bold;">eitherSample</span> <span style="color: #7590db;">::</span> <span style="color: #ce537a; font-weight: bold;">Int</span> <span style="color: #7590db;">-&gt;</span> <span style="color: #ce537a; font-weight: bold;">Either</span> <span style="color: #ce537a; font-weight: bold;">String</span> <span style="color: #ce537a; font-weight: bold;">Int</span>
+<span style="color: #bc6ec5; font-weight: bold;">eitherSample</span> n <span style="color: #7590db;">=</span> <span style="color: #4f97d7; font-weight: bold;">do</span>
+  <span style="color: #4f97d7; font-weight: bold;">let</span> r <span style="color: #7590db;">=</span> fromIntegral n
+  x <span style="color: #7590db;">&lt;-</span> safeDivide <span style="color: #a45bad;">100.0</span> r
+  y <span style="color: #7590db;">&lt;-</span> safeSqrt x
+  <span style="color: #4f97d7; font-weight: bold;">let</span> z <span style="color: #7590db;">=</span> ceiling y
+  return z
+  <span style="color: #4f97d7; font-weight: bold;">where</span> safeDivide <span style="color: #4f97d7; font-weight: bold;">_</span> <span style="color: #a45bad;">0</span> <span style="color: #7590db;">=</span> <span style="color: #ce537a; font-weight: bold;">Left</span>  <span style="color: #2d9574;">"divided by 0!"</span>
+        safeDivide a b <span style="color: #7590db;">=</span> <span style="color: #ce537a; font-weight: bold;">Right</span> <span style="color: #4f97d7;">(</span>a <span style="color: #7590db;">/</span> b<span style="color: #4f97d7;">)</span>
+        safeSqrt x <span style="color: #7590db;">|</span> x <span style="color: #7590db;">&lt;</span> <span style="color: #a45bad;">0</span> <span style="color: #7590db;">=</span> <span style="color: #ce537a; font-weight: bold;">Left</span>  <span style="color: #2d9574;">"negative number!"</span>
+                   <span style="color: #7590db;">|</span> <span style="color: #ce537a; font-weight: bold;">True</span>  <span style="color: #7590db;">=</span> <span style="color: #ce537a; font-weight: bold;">Right</span> <span style="color: #7590db;">$</span> sqrt x
+</pre>
+</div>
+
+<p>
+这里就用 lua 来表达一下思路。
+其实就是将整个函数体用 <code>return runeither(function() ... end)</code> 包起来，并将原来的特殊的赋值 <code>&lt;-</code> (<code>&gt;&gt;=</code>) 改为 <code>coroutine.yield</code> 。
+简单起见， <code>Either</code> 就直接用多值返回模拟，用第一个返回值表示 <code>Right</code> 而第二个返回值表示 <code>Left</code> ，之所以如此而不是反过来是因为这样恰好可以很方便地处理最后的 <code>return</code> 。
+具体如下：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lua"><span style="color: #4f97d7; font-weight: bold;">local</span> <span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">runeither</span><span style="color: #4f97d7;">(</span>f<span style="color: #4f97d7;">)</span>
+  <span style="color: #4f97d7; font-weight: bold;">local</span> <span style="color: #7590db;">co</span> = <span style="color: #4f97d7;">coroutine</span>.<span style="color: #4f97d7;">create</span><span style="color: #4f97d7;">(</span>f<span style="color: #4f97d7;">)</span>
+  <span style="color: #4f97d7; font-weight: bold;">local</span> <span style="color: #7590db;">_</span>, <span style="color: #7590db;">data</span>, <span style="color: #7590db;">err</span> = <span style="color: #4f97d7;">coroutine</span>.<span style="color: #4f97d7;">resume</span><span style="color: #4f97d7;">(</span>co<span style="color: #4f97d7;">)</span>
+  <span style="color: #4f97d7; font-weight: bold;">while</span> <span style="color: #4f97d7;">coroutine</span>.<span style="color: #4f97d7;">status</span><span style="color: #4f97d7;">(</span>co<span style="color: #4f97d7;">)</span> ~= <span style="color: #2d9574;">"dead"</span> <span style="color: #4f97d7; font-weight: bold;">and</span> err == <span style="color: #a45bad;">nil</span> <span style="color: #4f97d7; font-weight: bold;">do</span>
+    _, data, err = <span style="color: #4f97d7;">coroutine</span>.<span style="color: #4f97d7;">resume</span><span style="color: #4f97d7;">(</span>co, data<span style="color: #4f97d7;">)</span>
+  <span style="color: #4f97d7; font-weight: bold;">end</span>
+  <span style="color: #4f97d7; font-weight: bold;">return</span> data, err
+<span style="color: #4f97d7; font-weight: bold;">end</span>
+
+<span style="color: #4f97d7; font-weight: bold;">local</span> <span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">eithersample</span><span style="color: #4f97d7;">(</span>n<span style="color: #4f97d7;">)</span>
+  <span style="color: #4f97d7; font-weight: bold;">local</span> <span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">safediv</span><span style="color: #4f97d7;">(</span>a, b<span style="color: #4f97d7;">)</span>
+    <span style="color: #4f97d7; font-weight: bold;">if</span> b == <span style="color: #a45bad;">0</span> <span style="color: #4f97d7; font-weight: bold;">then</span>
+      <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #a45bad;">0</span>, <span style="color: #2d9574;">"Divided by ZERO!"</span>
+    <span style="color: #4f97d7; font-weight: bold;">end</span>
+    <span style="color: #4f97d7; font-weight: bold;">return</span> a / b, <span style="color: #a45bad;">nil</span>
+  <span style="color: #4f97d7; font-weight: bold;">end</span>
+  <span style="color: #4f97d7; font-weight: bold;">local</span> <span style="color: #4f97d7; font-weight: bold;">function</span> <span style="color: #bc6ec5; font-weight: bold;">safesqrt</span><span style="color: #4f97d7;">(</span>x<span style="color: #4f97d7;">)</span>
+    <span style="color: #4f97d7; font-weight: bold;">if</span> x &lt; <span style="color: #a45bad;">0</span> <span style="color: #4f97d7; font-weight: bold;">then</span>
+      <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #a45bad;">0</span>, <span style="color: #2d9574;">"negative number!"</span>
+    <span style="color: #4f97d7; font-weight: bold;">end</span>
+    <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7;">math</span>.<span style="color: #4f97d7;">sqrt</span><span style="color: #4f97d7;">(</span>x<span style="color: #4f97d7;">)</span>, <span style="color: #a45bad;">nil</span>
+  <span style="color: #4f97d7; font-weight: bold;">end</span>
+  <span style="color: #4f97d7; font-weight: bold;">return</span> runeither<span style="color: #4f97d7;">(</span><span style="color: #4f97d7; font-weight: bold;">function</span><span style="color: #bc6ec5;">()</span>
+    <span style="color: #4f97d7; font-weight: bold;">local</span> <span style="color: #7590db;">x</span> = <span style="color: #4f97d7;">coroutine</span>.<span style="color: #4f97d7;">yield</span><span style="color: #bc6ec5;">(</span>safediv<span style="color: #2d9574;">(</span><span style="color: #a45bad;">100</span>.<span style="color: #a45bad;">0</span>, n<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+    <span style="color: #4f97d7; font-weight: bold;">local</span> <span style="color: #7590db;">y</span> = <span style="color: #4f97d7;">coroutine</span>.<span style="color: #4f97d7;">yield</span><span style="color: #bc6ec5;">(</span>safesqrt<span style="color: #2d9574;">(</span>x<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+    <span style="color: #4f97d7; font-weight: bold;">local</span> <span style="color: #7590db;">z</span> = <span style="color: #4f97d7;">math</span>.<span style="color: #4f97d7;">ceil</span><span style="color: #bc6ec5;">(</span>y<span style="color: #bc6ec5;">)</span>
+    <span style="color: #4f97d7; font-weight: bold;">return</span> z
+  <span style="color: #4f97d7; font-weight: bold;">end</span><span style="color: #4f97d7;">)</span>
+<span style="color: #4f97d7; font-weight: bold;">end</span>
+</pre>
+</div>
+
+<p>
+当然 <code>runeither()</code> 可以进一步抽象，将 monad 的类型（例如本例中的 <code>Either</code> ）和 coroutine 的机制剥离，仅留下诸如 <code>bind</code> (<code>&gt;&gt;=</code>) 这样的接口当然更好，但这里主要就表示一下思路，就不展开了。
+</p>
+
+<p>
+P.S. 在 Haskell 中 <code>Yield</code> 是一个 <code>Functor</code> ，而 <code>Coroutine (Yield a)</code> 是一个 <code>MonadTrans</code> ， <code>Coroutine (Yield a) m</code> 在 <code>m</code> 是一个 <code>Monad</code> 的情况下也是一个 <code>Monad</code> 。
+这说明 monad 和 coroutine 很有些渊源。
+</p>
+</div>
+</body>
+</html>

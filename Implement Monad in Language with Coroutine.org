@@ -1,0 +1,66 @@
+#+setupfile: common.org
+#+title: Implement Monad in Language with Coroutine
+
+Haskell 的 monad 配合上 do notation 的语法糖在实际中可以节省若干代码（类似 golang 的 error check）或陷入回调地狱。
+这么有用的语言特性当然也希望在别的编程语言中也能享受到。
+
+在 Haskell 中 do notation 将回调风格的程序包装为普通的非回调的形式，而在其它的编程语言里 coroutine 则是用来处理回调地狱的好办法。
+所以可以考虑用 coroutine 来模拟这套机制。
+
+举个例子，比如下面这段程序：
+
+#+BEGIN_SRC haskell
+eitherSample :: Int -> Either String Int
+eitherSample n = do
+  let r = fromIntegral n
+  x <- safeDivide 100.0 r
+  y <- safeSqrt x
+  let z = ceiling y
+  return z
+  where safeDivide _ 0 = Left  "divided by 0!"
+        safeDivide a b = Right (a / b)
+        safeSqrt x | x < 0 = Left  "negative number!"
+                   | True  = Right $ sqrt x
+#+END_SRC
+
+这里就用 lua 来表达一下思路。
+其实就是将整个函数体用 =return runeither(function() ... end)= 包起来，并将原来的特殊的赋值 =<-= (=>>==) 改为 =coroutine.yield= 。
+简单起见， =Either= 就直接用多值返回模拟，用第一个返回值表示 =Right= 而第二个返回值表示 =Left= ，之所以如此而不是反过来是因为这样恰好可以很方便地处理最后的 =return= 。
+具体如下：
+
+#+BEGIN_SRC lua
+local function runeither(f)
+	local co = coroutine.create(f)
+	local _, data, err = coroutine.resume(co)
+	while coroutine.status(co) ~= "dead" and err == nil do
+		_, data, err = coroutine.resume(co, data)
+	end
+	return data, err
+end
+
+local function eithersample(n)
+	local function safediv(a, b)
+		if b == 0 then
+			return 0, "Divided by ZERO!"
+		end
+		return a / b, nil
+	end
+	local function safesqrt(x)
+		if x < 0 then
+			return 0, "negative number!"
+		end
+		return math.sqrt(x), nil
+	end
+	return runeither(function()
+		local x = coroutine.yield(safediv(100.0, n))
+		local y = coroutine.yield(safesqrt(x))
+		local z = math.ceil(y)
+		return z
+	end)
+end
+#+END_SRC
+
+当然 =runeither()= 可以进一步抽象，将 monad 的类型（例如本例中的 =Either= ）和 coroutine 的机制剥离，仅留下诸如 =bind= (=>>==) 这样的接口当然更好，但这里主要就表示一下思路，就不展开了。
+
+P.S. 在 Haskell 中 =Yield= 是一个 =Functor= ，而 =Coroutine (Yield a)= 是一个 =MonadTrans= ， =Coroutine (Yield a) m= 在 =m= 是一个 =Monad= 的情况下也是一个 =Monad= 。
+这说明 monad 和 coroutine 很有些渊源。
