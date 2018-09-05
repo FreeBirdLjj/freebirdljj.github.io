@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2018-06-24 Sun 15:23 -->
+<!-- 2018-09-05 Wed 08:52 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Golang Guards</title>
@@ -240,15 +240,15 @@ golang 的 <code>defer</code> 机制用来在函数返回时执行清理操作�
 </p>
 
 <div class="org-src-container">
-<pre class="src src-golang">func guard() func() {
-	fmt.Println("Guarding...")
-	return func() { fmt.Println("Leaving...") }
-}
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">guard</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+        fmt.<span style="color: #bc6ec5; font-weight: bold;">Println</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"Guarding..."</span><span style="color: #bc6ec5;">)</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #bc6ec5;">()</span> <span style="color: #bc6ec5;">{</span> fmt.<span style="color: #bc6ec5; font-weight: bold;">Println</span><span style="color: #2d9574;">(</span><span style="color: #2d9574;">"Leaving..."</span><span style="color: #2d9574;">)</span> <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
 
-func f() {
-	defer guard()()
-	fmt.Println("Do something...")
-}
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">f</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">defer</span> <span style="color: #bc6ec5; font-weight: bold;">guard</span><span style="color: #bc6ec5;">()()</span>
+        fmt.<span style="color: #bc6ec5; font-weight: bold;">Println</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"Do something..."</span><span style="color: #bc6ec5;">)</span>
+<span style="color: #4f97d7;">}</span>
 </pre>
 </div>
 
@@ -268,10 +268,10 @@ Leaving...
 </p>
 
 <div class="org-src-container">
-<pre class="src src-golang">func LockGuard(m *sync.Mutex) func() {
-	m.Lock()
-	return m.Unlock
-}
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">LockGuard</span><span style="color: #4f97d7;">(</span>m *<span style="color: #ce537a; font-weight: bold;">sync.Mutex</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+        m.<span style="color: #bc6ec5; font-weight: bold;">Lock</span><span style="color: #bc6ec5;">()</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> m.Unlock
+<span style="color: #4f97d7;">}</span>
 </pre>
 </div>
 

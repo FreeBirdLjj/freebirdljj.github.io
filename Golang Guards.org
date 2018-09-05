@@ -4,7 +4,7 @@
 golang 的 =defer= 机制用来在函数返回时执行清理操作。
 本文讲述的小技巧是利用返回类型为 =func()= 的函数作为 guard function。
 
-#+BEGIN_SRC golang
+#+BEGIN_SRC go
 func guard() func() {
 	fmt.Println("Guarding...")
 	return func() { fmt.Println("Leaving...") }
@@ -26,7 +26,7 @@ Leaving...
 
 这样的函数作 guard 尤为方便，比如用来实现类似 C++ 的 =std::lock_guard= ：
 
-#+BEGIN_SRC golang
+#+BEGIN_SRC go
 func LockGuard(m *sync.Mutex) func() {
 	m.Lock()
 	return m.Unlock
