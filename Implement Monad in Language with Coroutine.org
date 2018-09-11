@@ -1,7 +1,7 @@
 #+setupfile: common.org
 #+title: Implement Monad in Language with Coroutine
 
-Haskell 的 monad 配合上 do notation 的语法糖在实际中可以节省若干代码（类似 golang 的 error check）或陷入回调地狱。
+Haskell 的 monad 配合上 do notation 的语法糖在实际中可以节省若干代码（类似 golang 的 error check）或从回调地狱中逃离。
 这么有用的语言特性当然也希望在别的编程语言中也能享受到。
 
 在 Haskell 中 do notation 将回调风格的程序包装为普通的非回调的形式，而在其它的编程语言里 coroutine 则是用来处理回调地狱的好办法。
