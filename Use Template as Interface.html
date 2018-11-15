@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2018-11-16 Fri 01:57 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Use Template as Interface</title>
+<meta name="generator" content="Org mode" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<link rel="stylesheet" type="text/css" href="css/worg.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="https://freebirdljj.github.io"> UP </a>
+ |
+ <a accesskey="H" href="https://freebirdljj.github.io"> HOME </a>
+</div><div id="content">
+<h1 class="title">Use Template as Interface</h1>
+<p>
+通常，面向对象的编程语言都有接口这样的抽象机制。
+但接口由于有虚派发，我们其实有的时候并不需要这么“重”的实现。
+如果纯粹是代码复用而不必在运行时派发，那我们不妨换个思路，用模板的偏特化来实现。
+</p>
+
+<p>
+我们先从最简单的场景说起：比如我们要定义一个 <code>greeter</code> 接口，需要实现相应的 <code>void greet() const</code> 方法。
+这里我挑了一个比较特别的类型 <code>int</code> 来使用这个接口以实现代码的复用，它的特殊之处在于它不是一个 class。
+</p>
+
+<p>
+首先类型 <code>greeter</code> 定义如下：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">template</span> <span style="color: #4f97d7;">&lt;</span><span style="color: #4f97d7; font-weight: bold;">typename</span> <span style="color: #ce537a; font-weight: bold;">T</span><span style="color: #4f97d7;">&gt;</span>
+<span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">greeter</span>
+<span style="color: #4f97d7;">{</span>
+<span style="color: #4f97d7; font-weight: bold;">public</span>:
+  <span style="color: #bc6ec5; font-weight: bold;">greeter</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">T</span><span style="color: #bc6ec5;">)</span>;
+  <span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">greet</span><span style="color: #bc6ec5;">()</span> <span style="color: #4f97d7; font-weight: bold;">const</span>;
+<span style="color: #4f97d7;">}</span>;
+</pre>
+</div>
+
+<p>
+然后我们让 <code>int</code> 类型实现这个“接口”：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">template</span> <span style="color: #4f97d7;">&lt;&gt;</span>
+<span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">greeter</span><span style="color: #4f97d7;">&lt;</span><span style="color: #ce537a; font-weight: bold;">int</span><span style="color: #4f97d7;">&gt;</span>
+<span style="color: #4f97d7;">{</span>
+<span style="color: #4f97d7; font-weight: bold;">public</span>:
+  <span style="color: #bc6ec5; font-weight: bold;">greeter</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">x</span><span style="color: #bc6ec5;">)</span> : x_<span style="color: #bc6ec5;">(</span>x<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{}</span>
+  <span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">greet</span><span style="color: #bc6ec5;">()</span> <span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #bc6ec5;">{</span> <span style="color: #a45bad;">std</span>::cout &lt;&lt; <span style="color: #2d9574;">"int "</span> &lt;&lt; <span style="color: #4f97d7; font-weight: bold;">this</span>-&gt;x_ &lt;&lt; <span style="color: #2d9574;">" says hello!"</span> &lt;&lt; <span style="color: #a45bad;">std</span>::endl; <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7; font-weight: bold;">private</span>:
+  <span style="color: #ce537a; font-weight: bold;">int</span> <span style="color: #7590db;">x_</span>;
+<span style="color: #4f97d7;">}</span>;
+</pre>
+</div>
+
+<p>
+那么我们在将 <code>int</code> 作为 <code>greeter</code> 使用时就可以这么写：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #4f97d7; font-weight: bold;">auto</span> x = greeter<span style="color: #4f97d7;">&lt;</span><span style="color: #ce537a; font-weight: bold;">int</span><span style="color: #4f97d7;">&gt;(</span><span style="color: #a45bad;">42</span><span style="color: #4f97d7;">)</span>;
+x.greet<span style="color: #4f97d7;">()</span>;  <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">output: int 42 says hello!</span>
+</pre>
+</div>
+
+<p>
+不过这里还要显式写出一个 <code>int</code> 就稍微有点繁琐了，所以我们定义一个工厂函数 <code>greeter&lt;T&gt; as_greeter(T)</code> 替我们解决这个问题：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">template</span> <span style="color: #4f97d7;">&lt;</span><span style="color: #4f97d7; font-weight: bold;">typename</span> <span style="color: #ce537a; font-weight: bold;">T</span><span style="color: #4f97d7;">&gt;</span>
+<span style="color: #ce537a; font-weight: bold;">greeter</span><span style="color: #4f97d7;">&lt;</span><span style="color: #ce537a; font-weight: bold;">T</span><span style="color: #4f97d7;">&gt;</span> <span style="color: #bc6ec5; font-weight: bold;">as_greeter</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">T</span> <span style="color: #7590db;">x</span><span style="color: #4f97d7;">)</span>
+<span style="color: #4f97d7;">{</span>
+  <span style="color: #4f97d7; font-weight: bold;">return</span> greeter<span style="color: #bc6ec5;">&lt;</span><span style="color: #ce537a; font-weight: bold;">T</span><span style="color: #bc6ec5;">&gt;(</span>x<span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+这样我们就不必显式写出 <code>int</code> 了：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #4f97d7; font-weight: bold;">auto</span> x = as_greeter<span style="color: #4f97d7;">(</span><span style="color: #a45bad;">42</span><span style="color: #4f97d7;">)</span>;
+x.greet<span style="color: #4f97d7;">()</span>;  <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">output: int 42 says hello!</span>
+</pre>
+</div>
+
+<p>
+显然，这里和面向对象里的接口一样，如果某类型没有实现该接口则不能作为该接口使用。
+</p>
+
+<p>
+如果仅仅是为省去一点虚方法调用开销，其实这个技巧也不怎么值得专门拿出来讲了，实际上模板在“类满足某种约束”的抽象上比接口要更厉害。
+比如说模板可以针对类方法进行抽象，而不仅限于实例方法。
+</p>
+
+<p>
+举个例子，对于像 JSON 反序列化这样的场景直接定义工厂方法就好了，这里不需要运行时派发（因为需要被解出来的数据的结构是预定的）。
+这样就像 Haskell 的 <a href="https://github.com/bos/aeson">aeson</a> 库的 <a href="https://hackage.haskell.org/package/aeson-1.4.1.0/docs/Data-Aeson.html#t:FromJSON">FromJSON</a> 接口就是直接定义在类型上的，而不是像 Golang 系统库的 <a href="https://godoc.org/encoding/json">encoding/json</a> 的 <a href="https://godoc.org/encoding/json#Unmarshaler">Unmarshaler</a> 或者 Java 的 <a href="https://github.com/google/gson">Gson</a> 库还要重新定义一个类实现 <a href="http://static.javadoc.io/com.google.code.gson/gson/2.8.5/com/google/gson/JsonDeserializer.html">JsonDeserializer</a> 接口然后还要注册。
+</p>
+
+<p>
+不过我并不打算这里举 JSON parser 这种例子，这个例子有点太复杂了。
+实际上有一种相当有趣的情形可以用于阐述这个技巧：有的时候我们不得不在两种语言中进行开发，并且要在一个语言内实现某些功能后还需要将相应的方法绑定到另一语言上以供调用。
+</p>
+
+<p>
+比如说在 iOS 客户端开发过程中有的时候需要将 OpenCV 的 <code>cv::Mat</code> 和 Objective-C 的 <code>UIImage *</code> 进行转换：做图像处理的时候当然希望是用 <code>cv::Mat</code> ，而客户端部分则希望用 <code>UIImage *</code> 。
+当然实际开发中可能不只这一种情况要用到 C++ / Objective-C 的互相调用及数据转换，所以希望能够有一种通用的绑定机制更方便程序编写。
+</p>
+
+<p>
+为了简化并突出问题，下面演示的代码我只展示这个机制，而不考虑诸如完美转发这样的优化。
+</p>
+
+<p>
+假定我们现在有一个 OpenCV 版本的多重曝光函数 <code>cv::Mat multi_exposure(const cv::Mat, const cv::Mat)</code> ，现在我们希望将它绑定到 Objective-C 中。
+</p>
+
+<p>
+首先我们需要定义一个用于在 Objective-C 和 C++ 中进行类型转换的类 <code>objc_conv</code> ：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">template</span> <span style="color: #4f97d7;">&lt;</span><span style="color: #4f97d7; font-weight: bold;">typename</span> <span style="color: #ce537a; font-weight: bold;">T</span><span style="color: #4f97d7;">&gt;</span>
+<span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">objc_conv</span>
+<span style="color: #4f97d7;">{</span>
+<span style="color: #4f97d7; font-weight: bold;">public</span>:
+  <span style="color: #4f97d7; font-weight: bold;">using</span> <span style="color: #ce537a; font-weight: bold;">objc_t</span> = T;
+
+  <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #ce537a; font-weight: bold;">T</span>      <span style="color: #bc6ec5; font-weight: bold;">from_objc</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">objc_t</span> <span style="color: #7590db;">x</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> x; <span style="color: #bc6ec5;">}</span>
+  <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #ce537a; font-weight: bold;">objc_t</span> <span style="color: #bc6ec5; font-weight: bold;">to_objc</span>  <span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">T</span>      <span style="color: #7590db;">x</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span> <span style="color: #4f97d7; font-weight: bold;">return</span> x; <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>;
+</pre>
+</div>
+
+<p>
+这里我们提供一个默认实现：一个 C++ 类型在 Objective-C 中的对应类型就是它本身。
+</p>
+
+<p>
+然后我们需要对 <code>cv::Mat</code> 进行一下特化（实现）：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">template</span><span style="color: #4f97d7;">&lt;&gt;</span>
+<span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">objc_conv</span><span style="color: #4f97d7;">&lt;</span>Mat<span style="color: #4f97d7;">&gt;</span>
+<span style="color: #4f97d7;">{</span>
+<span style="color: #4f97d7; font-weight: bold;">public</span>:
+  <span style="color: #4f97d7; font-weight: bold;">using</span> <span style="color: #ce537a; font-weight: bold;">objc_t</span> = UIImage *;
+
+  <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #ce537a; font-weight: bold;">Mat</span> <span style="color: #bc6ec5; font-weight: bold;">from_objc</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">objc_t</span><span style="color: #bc6ec5;">)</span>
+  <span style="color: #bc6ec5;">{</span>
+    <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">a lot of codes</span>
+    <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">...</span>
+  <span style="color: #bc6ec5;">}</span>
+  <span style="color: #4f97d7; font-weight: bold;">static</span> <span style="color: #ce537a; font-weight: bold;">objc_t</span> <span style="color: #bc6ec5; font-weight: bold;">to_objc</span><span style="color: #bc6ec5;">(</span><span style="color: #ce537a; font-weight: bold;">Mat</span><span style="color: #bc6ec5;">)</span>
+  <span style="color: #bc6ec5;">{</span>
+    <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">a lot of codes</span>
+    <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">...</span>
+  <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>;
+</pre>
+</div>
+
+<p>
+接下来就是用于生成绑定函数的 <code>objc_bridge_func()</code> ：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">template</span> <span style="color: #4f97d7;">&lt;</span><span style="color: #4f97d7; font-weight: bold;">typename</span> <span style="color: #ce537a; font-weight: bold;">R</span>, <span style="color: #4f97d7; font-weight: bold;">typename</span> ...<span style="color: #ce537a; font-weight: bold;">Args</span><span style="color: #4f97d7;">&gt;</span>
+<span style="color: #a45bad;">std</span>::<span style="color: #ce537a; font-weight: bold;">function</span><span style="color: #4f97d7;">&lt;</span><span style="color: #4f97d7; font-weight: bold;">typename</span> <span style="color: #a45bad;">objc_conv</span><span style="color: #bc6ec5;">&lt;</span><span style="color: #ce537a; font-weight: bold;">R</span><span style="color: #bc6ec5;">&gt;</span>::objc_t<span style="color: #bc6ec5;">(</span><span style="color: #4f97d7; font-weight: bold;">typename</span> <span style="color: #a45bad;">objc_conv</span><span style="color: #2d9574;">&lt;</span><span style="color: #ce537a; font-weight: bold;">Args</span><span style="color: #2d9574;">&gt;</span>::<span style="color: #ce537a; font-weight: bold;">objc_t</span>...<span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">&gt;</span> <span style="color: #bc6ec5; font-weight: bold;">objc_bridge_func</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">R</span> <span style="color: #bc6ec5;">(</span>*<span style="color: #bc6ec5; font-weight: bold;">f</span><span style="color: #bc6ec5;">)(</span><span style="color: #ce537a; font-weight: bold;">Args</span>...<span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>
+<span style="color: #4f97d7;">{</span>
+  <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #bc6ec5;">[</span>=<span style="color: #bc6ec5;">]</span> <span style="color: #bc6ec5;">(</span><span style="color: #4f97d7; font-weight: bold;">typename</span> <span style="color: #a45bad;">objc_conv</span><span style="color: #2d9574;">&lt;</span><span style="color: #ce537a; font-weight: bold;">Args</span><span style="color: #2d9574;">&gt;</span>::<span style="color: #ce537a; font-weight: bold;">objc_t</span>... <span style="color: #7590db;">args</span><span style="color: #bc6ec5;">)</span> -&gt; <span style="color: #4f97d7; font-weight: bold;">typename</span> <span style="color: #a45bad;">objc_conv</span><span style="color: #bc6ec5;">&lt;</span><span style="color: #ce537a; font-weight: bold;">R</span><span style="color: #bc6ec5;">&gt;</span>::objc_t <span style="color: #bc6ec5;">{</span>
+    <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #a45bad;">objc_conv</span><span style="color: #2d9574;">&lt;</span><span style="color: #ce537a; font-weight: bold;">R</span><span style="color: #2d9574;">&gt;</span>::to_objc<span style="color: #2d9574;">(</span>f<span style="color: #67b11d;">(</span><span style="color: #a45bad;">objc_conv</span><span style="color: #b1951d;">&lt;</span><span style="color: #ce537a; font-weight: bold;">Args</span><span style="color: #b1951d;">&gt;</span>::from_objc<span style="color: #b1951d;">(</span>args<span style="color: #b1951d;">)</span>...<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>;
+  <span style="color: #bc6ec5;">}</span>;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+有了 <code>objc_bridge_func()</code> 这个神器，我们就可以把精力从无穷无尽的 Objective-C / C++ 方法绑定的参数类型转换中节省出来去做真正重要的事了。
+比如我们可以直接在客户端代码里希望用到多重曝光的地方这么用：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #ce537a; font-weight: bold;">UIImage</span> * <span style="color: #7590db;">img1</span> = ...;
+<span style="color: #ce537a; font-weight: bold;">UIImage</span> * <span style="color: #7590db;">img2</span> = ...;
+<span style="color: #4f97d7; font-weight: bold;">const</span> <span style="color: #4f97d7; font-weight: bold;">auto</span> objc_multi_exposure = objc_bridge_func<span style="color: #4f97d7;">(</span>&amp;multi_exposure<span style="color: #4f97d7;">)</span>;
+<span style="color: #ce537a; font-weight: bold;">UIImage</span> * <span style="color: #7590db;">outImg</span> = objc_multi_exposure<span style="color: #4f97d7;">(</span>img1, img2<span style="color: #4f97d7;">)</span>;
+</pre>
+</div>
+
+<p>
+哪怕为了让客户端代码保持“纯净”（纯 Objective-C ）而引入一个类来做桥接，我们也可以利用 <code>objc_bridge_func()</code> 省掉桥接方法里参数与返回值的类型转换的代码。
+</p>
+
+<p>
+最终利用模板的偏特化我们就实现了一种更强的“接口”，我们也让 C++ 的类型系统为我们工作，而不是反过来——我们努力修改代码只为通过编译器的类型检查。
+</p>
+</div>
+</body>
+</html>

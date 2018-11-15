@@ -1,0 +1,141 @@
+#+setupfile: common.org
+#+title: Use Template as Interface
+
+通常，面向对象的编程语言都有接口这样的抽象机制。
+但接口由于有虚派发，我们其实有的时候并不需要这么“重”的实现。
+如果纯粹是代码复用而不必在运行时派发，那我们不妨换个思路，用模板的偏特化来实现。
+
+我们先从最简单的场景说起：比如我们要定义一个 =greeter= 接口，需要实现相应的 =void greet() const= 方法。
+这里我挑了一个比较特别的类型 =int= 来使用这个接口以实现代码的复用，它的特殊之处在于它不是一个 class。
+
+首先类型 =greeter= 定义如下：
+
+#+BEGIN_SRC cpp
+template <typename T>
+class greeter
+{
+public:
+	greeter(T);
+	void greet() const;
+};
+#+END_SRC
+
+然后我们让 =int= 类型实现这个“接口”：
+
+#+BEGIN_SRC cpp
+template <>
+class greeter<int>
+{
+public:
+	greeter(int x) : x_(x) {}
+	void greet() const { std::cout << "int " << this->x_ << " says hello!" << std::endl; }
+private:
+	int x_;
+};
+#+END_SRC
+
+那么我们在将 =int= 作为 =greeter= 使用时就可以这么写：
+
+#+BEGIN_SRC cpp
+const auto x = greeter<int>(42);
+x.greet();	// output: int 42 says hello!
+#+END_SRC
+
+不过这里还要显式写出一个 =int= 就稍微有点繁琐了，所以我们定义一个工厂函数 =greeter<T> as_greeter(T)= 替我们解决这个问题：
+
+#+BEGIN_SRC cpp
+template <typename T>
+greeter<T> as_greeter(T x)
+{
+	return greeter<T>(x);
+}
+#+END_SRC
+
+这样我们就不必显式写出 =int= 了：
+
+#+BEGIN_SRC cpp
+const auto x = as_greeter(42);
+x.greet();	// output: int 42 says hello!
+#+END_SRC
+
+显然，这里和面向对象里的接口一样，如果某类型没有实现该接口则不能作为该接口使用。
+
+如果仅仅是为省去一点虚方法调用开销，其实这个技巧也不怎么值得专门拿出来讲了，实际上模板在“类满足某种约束”的抽象上比接口要更厉害。
+比如说模板可以针对类方法进行抽象，而不仅限于实例方法。
+
+举个例子，对于像 JSON 反序列化这样的场景直接定义工厂方法就好了，这里不需要运行时派发（因为需要被解出来的数据的结构是预定的）。
+这样就像 Haskell 的 [[https://github.com/bos/aeson][aeson]] 库的 [[https://hackage.haskell.org/package/aeson-1.4.1.0/docs/Data-Aeson.html#t:FromJSON][FromJSON]] 接口就是直接定义在类型上的，而不是像 Golang 系统库的 [[https://godoc.org/encoding/json][encoding/json]] 的 [[https://godoc.org/encoding/json#Unmarshaler][Unmarshaler]] 或者 Java 的 [[https://github.com/google/gson][Gson]] 库还要重新定义一个类实现 [[http://static.javadoc.io/com.google.code.gson/gson/2.8.5/com/google/gson/JsonDeserializer.html][JsonDeserializer]] 接口然后还要注册。
+
+不过我并不打算这里举 JSON parser 这种例子，这个例子有点太复杂了。
+实际上有一种相当有趣的情形可以用于阐述这个技巧：有的时候我们不得不在两种语言中进行开发，并且要在一个语言内实现某些功能后还需要将相应的方法绑定到另一语言上以供调用。
+
+比如说在 iOS 客户端开发过程中有的时候需要将 OpenCV 的 =cv::Mat= 和 Objective-C 的 =UIImage *= 进行转换：做图像处理的时候当然希望是用 =cv::Mat= ，而客户端部分则希望用 =UIImage *= 。
+当然实际开发中可能不只这一种情况要用到 C++ / Objective-C 的互相调用及数据转换，所以希望能够有一种通用的绑定机制更方便程序编写。
+
+为了简化并突出问题，下面演示的代码我只展示这个机制，而不考虑诸如完美转发这样的优化。
+
+假定我们现在有一个 OpenCV 版本的多重曝光函数 =cv::Mat multi_exposure(const cv::Mat, const cv::Mat)= ，现在我们希望将它绑定到 Objective-C 中。
+
+首先我们需要定义一个用于在 Objective-C 和 C++ 中进行类型转换的类 =objc_conv= ：
+
+#+BEGIN_SRC cpp
+template <typename T>
+class objc_conv
+{
+public:
+	using objc_t = T;
+
+	static T      from_objc(objc_t x) { return x; }
+	static objc_t to_objc  (T      x) { return x; }
+};
+#+END_SRC
+
+这里我们提供一个默认实现：一个 C++ 类型在 Objective-C 中的对应类型就是它本身。
+
+然后我们需要对 =cv::Mat= 进行一下特化（实现）：
+
+#+BEGIN_SRC cpp
+template<>
+class objc_conv<Mat>
+{
+public:
+	using objc_t = UIImage *;
+
+	static Mat from_objc(objc_t)
+	{
+		// a lot of codes
+		// ...
+	}
+	static objc_t to_objc(Mat)
+	{
+		// a lot of codes
+		// ...
+	}
+};
+#+END_SRC
+
+接下来就是用于生成绑定函数的 =objc_bridge_func()= ：
+
+#+BEGIN_SRC cpp
+template <typename R, typename ...Args>
+std::function<typename objc_conv<R>::objc_t(typename objc_conv<Args>::objc_t...)> objc_bridge_func(R (*f)(Args...))
+{
+	return [=] (typename objc_conv<Args>::objc_t... args) -> typename objc_conv<R>::objc_t {
+		return objc_conv<R>::to_objc(f(objc_conv<Args>::from_objc(args)...));
+	};
+}
+#+END_SRC
+
+有了 =objc_bridge_func()= 这个神器，我们就可以把精力从无穷无尽的 Objective-C / C++ 方法绑定的参数类型转换中节省出来去做真正重要的事了。
+比如我们可以直接在客户端代码里希望用到多重曝光的地方这么用：
+
+#+BEGIN_SRC cpp
+UIImage * img1 = ...;
+UIImage * img2 = ...;
+const auto objc_multi_exposure = objc_bridge_func(&multi_exposure);
+UIImage * outImg = objc_multi_exposure(img1, img2);
+#+END_SRC
+
+哪怕为了让客户端代码保持“纯净”（纯 Objective-C ）而引入一个类来做桥接，我们也可以利用 =objc_bridge_func()= 省掉桥接方法里参数与返回值的类型转换的代码。
+
+最终利用模板的偏特化我们就实现了一种更强的“接口”，我们也让 C++ 的类型系统为我们工作，而不是反过来——我们努力修改代码只为通过编译器的类型检查。
