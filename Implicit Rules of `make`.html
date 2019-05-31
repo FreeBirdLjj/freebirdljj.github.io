@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2018-06-10 Sun 18:54 -->
+<!-- 2019-05-31 Fri 20:10 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Implicit Rules of `make`</title>
@@ -160,6 +160,19 @@
   .footdef  { margin-bottom: 1em; }
   .figure { padding: 1em; }
   .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
   .inlinetask {
     padding: 10px;
     border: 2px solid gray;
@@ -185,7 +198,7 @@
 @licstart  The following is the entire license notice for the
 JavaScript code in this tag.
 
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 The JavaScript code in this tag is free software: you can
 redistribute it and/or modify it under the terms of the GNU
@@ -265,7 +278,7 @@ for the JavaScript code in this tag.
 
 <tr>
 <td class="org-left"><code>%</code></td>
-<td class="org-left">仅当目标时函数库文件（UNIX下的 .a 文件，Windows下的 .lib 文件）时，其值为依赖文件，否则为空</td>
+<td class="org-left">仅当目标是函数库文件（UNIX下的 .a 文件，Windows下的 .lib 文件）时，其值为依赖文件，否则为空</td>
 </tr>
 
 <tr>
