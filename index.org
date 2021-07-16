@@ -1,7 +1,7 @@
 #+setupfile: common.org
-#+options: toc:nil num:nil
 #+title: FreeBirdLjj's blog
 
+* [[file:Type Recursion in Golang.org][Type Recursion in Golang]]
 * [[file:Use Template as Interface.org][Use Template as Interface]]
 * [[file:Implement Monad in Language with Coroutine.org][Implement Monad in Language with Coroutine]]
 * [[file:Implement golang-like Interface in C++.org][Implement golang-like Interface in C++]]

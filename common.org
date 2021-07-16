@@ -1,5 +1,7 @@
 #+author:
 #+options: html-postamble:nil
+#+options: toc:nil
+#+options: num:nil
 
 #+html_link_up: https://freebirdljj.github.io
 #+html_link_home: https://freebirdljj.github.io
