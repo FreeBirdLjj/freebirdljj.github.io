@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2021-09-02 Thu 00:35 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>A Little Idea about Middleware</title>
+<meta name="generator" content="Org mode" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<link rel="stylesheet" type="text/css" href="css/worg.css" />
+<script type="text/javascript">
+// @license magnet:?xt=urn:btih:e95b018ef3580986a04669f1b5879592219e2a7a&dn=public-domain.txt Public Domain
+<!--/*--><![CDATA[/*><!--*/
+     function CodeHighlightOn(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.add("code-highlighted");
+         target.classList.add("code-highlighted");
+       }
+     }
+     function CodeHighlightOff(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.remove("code-highlighted");
+         target.classList.remove("code-highlighted");
+       }
+     }
+    /*]]>*///-->
+// @license-end
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="https://freebirdljj.github.io"> UP </a>
+ |
+ <a accesskey="H" href="https://freebirdljj.github.io"> HOME </a>
+</div><div id="content">
+<h1 class="title">A Little Idea about Middleware</h1>
+<p>
+在编写服务的 server 或者 client 时，我们都会用到中间件（ middleware ）。
+中间件极高的复用性以及可组合性极大地拓展了它的用武之地。
+本文旨在介绍一种采用 CPS 风格的 middleware 写法。
+</p>
+
+<p>
+一般来说， middleware 出于和 handler 可组合性的考量都会将类型设计得尽可能贴近 handler 。
+</p>
+
+<p>
+一个极端是 <a href="https://github.com/gin-gonic/gin">github.com/gin-gonic/gin</a> ， middleware 直接采用 handler 的类型。
+比如 <code>"github.com/gin-gonic/gin".(*Engine).Use</code> 的定义：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">engine</span> *<span style="color: #ce537a; font-weight: bold;">Engine</span><span style="color: #4f97d7;">)</span> <span style="color: #bc6ec5; font-weight: bold;">Use</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">middleware</span> ...<span style="color: #ce537a; font-weight: bold;">HandlerFunc</span><span style="color: #4f97d7;">)</span> <span style="color: #ce537a; font-weight: bold;">IRoutes</span>
+</pre>
+</div>
+
+<p>
+更一般的， middleware 会将类型设计为类似 <code>func(nextHandler Handler) Handler</code> 的形式。
+举几个例子：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">package: "github.com/go-chi/chi/middleware"</span>
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">Logger</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">next</span> <span style="color: #ce537a; font-weight: bold;">http.Handler</span><span style="color: #4f97d7;">)</span> <span style="color: #ce537a; font-weight: bold;">http.Handler</span>
+
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">package: "github.com/gorilla/handlers"</span>
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">CompressHandler</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">h</span> <span style="color: #ce537a; font-weight: bold;">http.Handler</span><span style="color: #4f97d7;">)</span> <span style="color: #ce537a; font-weight: bold;">http.Handler</span>
+
+<span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">package: "google.golang.org/grpc"</span>
+<span style="color: #4f97d7; font-weight: bold;">type</span> <span style="color: #ce537a; font-weight: bold;">UnaryServerInterceptor</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">ctx</span> <span style="color: #ce537a; font-weight: bold;">context.Context</span>, <span style="color: #7590db;">req</span> <span style="color: #4f97d7; font-weight: bold;">interface</span><span style="color: #bc6ec5;">{}</span>, <span style="color: #7590db;">info</span> *<span style="color: #ce537a; font-weight: bold;">UnaryServerInfo</span>, <span style="color: #7590db;">handler</span> <span style="color: #ce537a; font-weight: bold;">UnaryHandler</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">resp</span> <span style="color: #4f97d7; font-weight: bold;">interface</span><span style="color: #bc6ec5;">{}</span>, <span style="color: #7590db;">err</span> <span style="color: #ce537a; font-weight: bold;">error</span><span style="color: #4f97d7;">)</span>
+<span style="color: #4f97d7; font-weight: bold;">type</span> <span style="color: #ce537a; font-weight: bold;">UnaryHandler</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">ctx</span> <span style="color: #ce537a; font-weight: bold;">context.Context</span>, <span style="color: #7590db;">req</span> <span style="color: #4f97d7; font-weight: bold;">interface</span><span style="color: #bc6ec5;">{}</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">(</span><span style="color: #4f97d7; font-weight: bold;">interface</span><span style="color: #bc6ec5;">{}</span>, <span style="color: #ce537a; font-weight: bold;">error</span><span style="color: #4f97d7;">)</span>
+</pre>
+</div>
+
+<p>
+前两个都很标准。
+最后 gRPC 的做法虽然不是那么标准，但是考虑到 middleware （被称为 interceptor ）返回了 handler 的返回值，并且也额外接受了 handler 的参数，进行一个类似科里化的变化就能变成那个形式了。
+</p>
+
+<p>
+见识到了 <code>func(nextHandler Handler) Handler</code> 这种形式的普遍性后，下面说说这种形式的局限性。
+由于对 <code>nextHandler</code> 的调用完全发生在 middleware 当中，所以之后 middleware 发生的 abort 难于让当前 middleware 感受到。
+像 gin 一样自行封装 <code>"github.com/gin-gonic/gin".Context</code> 类型并直接提供 <code>"github.com/gin-gonic/gin".(*Context).IsAborted</code> 当然是一种可行的做法——但这要求要么 response 原生就提供 aborted 判断，要么得花额外的工作量来封装新类型。
+其实这种局限只是控制流上的局限性，所以可以通过引入 CPS 风格来解决。
+</p>
+
+<p>
+首先我们给出 middleware 的类型（注意到这里 <code>Middleware</code> 类型是递归的，想要单独类型递归可以看笔者旧文 <a href="Type Recursion in Golang.html">Type Recursion in Golang</a> 了解）：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">type</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">nextMiddleware</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #4f97d7;">)</span>
+
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">mw</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #4f97d7;">)</span> <span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">nextMiddleware</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">if</span> mw != <span style="color: #a45bad;">nil</span> <span style="color: #bc6ec5;">{</span>
+                <span style="color: #bc6ec5; font-weight: bold;">mw</span><span style="color: #2d9574;">(</span>req, resp, nextMiddleware<span style="color: #2d9574;">)</span>
+        <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+这里之所以定义了一个 <code>Middleware.Pass</code> 方法来代替直接调用是因为这样就可以直接用 <code>nil</code> 来表示空 middleware 也就是零元。
+这个 <code>Middleware</code> 类型和我们刚才介绍的常见的形式 <code>func(nextHandler Handler) Handler</code> 最大的区别其实就在于将 <code>nextHandler Handler</code> 参数替换成了 <code>nextMiddleware Middleware</code> 。
+这样整个 middleware 系统就“自成一体”，（暂时地）抛开了 handler ，也就抛开了 handler 所受的一些限制。
+</p>
+
+<p>
+在这个 middleware 系统中， middleware 写法的模板是这样的：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">DemoMiddleware</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">next</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+
+        <span style="color: #bc6ec5; font-weight: bold;">DoSomePreJobs</span><span style="color: #bc6ec5;">()</span>
+
+        <span style="color: #4f97d7; font-weight: bold;">if</span> shouldNotProcessReq <span style="color: #bc6ec5;">{</span>
+                *resp = someResp
+                <span style="color: #4f97d7; font-weight: bold;">return</span>
+        <span style="color: #bc6ec5;">}</span>
+
+        next.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #bc6ec5;">(</span>req, resp, CastMagic<span style="color: #bc6ec5;">)</span>
+
+        <span style="color: #bc6ec5; font-weight: bold;">DoSomePostJobs</span><span style="color: #bc6ec5;">()</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+<code>DoSomePreJobs</code> 和 <code>DoSomePostJobs</code> 都很好理解， <code>CastMagic</code> 有什么蹊跷之处么？
+当然有， <code>CastMagic</code> 就是用来控制代码执行的控制流的“注入点”。
+这么说有点尬吹了，不妨先看两个例子：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">AbortWithFn</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">f</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #bc6ec5;">()</span><span style="color: #4f97d7;">)</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">next</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+                <span style="color: #bc6ec5; font-weight: bold;">f</span><span style="color: #2d9574;">()</span>
+        <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">LiftFn</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">f</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #bc6ec5;">()</span><span style="color: #4f97d7;">)</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">next</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+                <span style="color: #bc6ec5; font-weight: bold;">f</span><span style="color: #2d9574;">()</span>
+                next.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #2d9574;">(</span>req, resp, <span style="color: #a45bad;">nil</span><span style="color: #2d9574;">)</span>
+        <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+在实际使用中，可以用 <code>AbortWithFn</code> 和 <code>LiftFn</code> 构造的 <code>Middleware</code> 来填充 <code>CastMagic</code> 的值，从而达到 abort 的效果或是在确保未进行 abort 的情况下观察 response 。
+</p>
+
+<p>
+不妨先看一个简单的 middleware <code>Logger</code> ：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">Logger</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">next</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+
+        fmt.<span style="color: #bc6ec5; font-weight: bold;">Println</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"Start"</span><span style="color: #bc6ec5;">)</span>
+        <span style="color: #4f97d7; font-weight: bold;">defer</span> fmt.<span style="color: #bc6ec5; font-weight: bold;">Println</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"End"</span><span style="color: #bc6ec5;">)</span>
+
+        next.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #bc6ec5;">(</span>req, resp, <span style="color: #bc6ec5; font-weight: bold;">LiftFn</span><span style="color: #2d9574;">(</span><span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #67b11d;">()</span> <span style="color: #67b11d;">{</span>
+                fmt.<span style="color: #bc6ec5; font-weight: bold;">Printf</span><span style="color: #b1951d;">(</span><span style="color: #2d9574;">"Got resp: %q\n"</span>, *resp<span style="color: #b1951d;">)</span>
+        <span style="color: #67b11d;">}</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+实际上运行的时候，这些 middleware 一个接着一个靠 <code>next</code> 给串起来，而 <code>next.Pass(req, resp, LiftFn(...))</code> 相当于是动态地给当前的 middleware 串又 append 一个新的。
+而所有后续的要执行的 middleware 都会包含在靠前的 middleware 对应的 <code>nextMiddleware</code> 里，所以一旦靠前的 middleware 不执行 <code>nextMiddleware</code> ，所有后面的 middleware 就都不会执行了，这也就是 <code>AbortWithFn</code> 的做法。
+这里可能有点绕，不过后面的示例代码应该有比较明晰的展示效果。
+</p>
+
+<p>
+在展示示例代码之前，还有两件事要做：一是将“（暂时）抛开的” handler 接回来，毕竟前文所述 middleware 已经自成一体了，对于 handler 需要做点工作才能融入这个体系；二是 middleware 的组合如何进行，实际上也是需要点技巧的。
+</p>
+
+<p>
+方便起见，我们就挑 <code>func(Request, *Response)</code> 作为 <code>Handler</code> 的定义，并给出相应的用于将 <code>Handler</code> 提升为 <code>Middleware</code> 的函数 <code>LiftHandler</code> ：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">type</span> <span style="color: #ce537a; font-weight: bold;">Handler</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">Request</span>, *<span style="color: #ce537a; font-weight: bold;">Response</span><span style="color: #4f97d7;">)</span>
+
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">LiftHandler</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">h</span> <span style="color: #ce537a; font-weight: bold;">Handler</span><span style="color: #4f97d7;">)</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">next</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+                <span style="color: #bc6ec5; font-weight: bold;">h</span><span style="color: #2d9574;">(</span>req, resp<span style="color: #2d9574;">)</span>
+                next.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #2d9574;">(</span>req, resp, <span style="color: #a45bad;">nil</span><span style="color: #2d9574;">)</span>
+        <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+middleware 的组合当然是从右向左依次进行，不过最基本的组合两个 middleware 的操作会因为采用 CPS 风格而复杂一些。
+先假装已经有了组合两个 middleware 的函数 <code>Compose</code> ，看如何拼装多个：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">Chain</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">mws</span> ...<span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">Handler</span><span style="color: #4f97d7;">)</span> <span style="color: #ce537a; font-weight: bold;">Handler</span> <span style="color: #4f97d7;">{</span>
+
+        <span style="color: #7590db;">r</span> := <span style="color: #bc6ec5; font-weight: bold;">Middleware</span><span style="color: #bc6ec5;">(</span><span style="color: #a45bad;">nil</span><span style="color: #bc6ec5;">)</span>
+
+        <span style="color: #4f97d7; font-weight: bold;">for</span> <span style="color: #7590db;">_</span>, <span style="color: #7590db;">mw</span> := <span style="color: #4f97d7; font-weight: bold;">range</span> mws <span style="color: #bc6ec5;">{</span>
+                r = <span style="color: #bc6ec5; font-weight: bold;">Compose</span><span style="color: #2d9574;">(</span>r, mw<span style="color: #2d9574;">)</span>
+        <span style="color: #bc6ec5;">}</span>
+
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">h</span> <span style="color: #ce537a; font-weight: bold;">Handler</span><span style="color: #bc6ec5;">)</span> <span style="color: #ce537a; font-weight: bold;">Handler</span> <span style="color: #bc6ec5;">{</span>
+                <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #2d9574;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+                        r.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #67b11d;">(</span>req, resp, <span style="color: #bc6ec5; font-weight: bold;">LiftHandler</span><span style="color: #b1951d;">(</span>h<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+                <span style="color: #2d9574;">}</span>
+        <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+接下来尝试给出 <code>Compose</code> 的实现。
+首先回想一下 middleware 和 <code>nextMiddleware</code> 的关系： middleware 将需要交由后续 middleware 托管的代码逻辑通过作为 <code>nextMiddleware</code> 的 <code>nextMiddleware</code> 传递给 <code>nextMiddleware.Pass()</code> 来往后传递。
+也就是说对于本层 middleware 而言， <code>nextMiddleware</code> 就是下一个 middleware ，而自己传给 <code>nextMiddleware</code> 的 <code>nextMiddleware</code> 却是 append 到目前这个 middleware 串的最末。
+所以对于两个 middleware <code>mw1</code> 和 <code>mw2</code> ， <code>Compose(mw1, mw2)</code> 这个中间件需要对它的 <code>nextMiddleware</code> (不妨称为 <code>mw3</code> )传入原本 <code>mw1</code> 和 <code>mw2</code> 最后要做的事（不妨称为 <code>next1</code> 和 <code>next2</code> ），并且顺序是是 <code>next2</code> 再 <code>next1</code> 。
+还是有点绕，不过结合代码多看看应该就理解了：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">Compose</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">mw1</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span>, <span style="color: #7590db;">mw2</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #4f97d7;">)</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">switch</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">case</span> mw1 == <span style="color: #a45bad;">nil</span>:
+                <span style="color: #4f97d7; font-weight: bold;">return</span> mw2
+        <span style="color: #4f97d7; font-weight: bold;">case</span> mw2 == <span style="color: #a45bad;">nil</span>:
+                <span style="color: #4f97d7; font-weight: bold;">return</span> mw1
+        <span style="color: #4f97d7; font-weight: bold;">default</span>:
+                <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #2d9574;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">mw3</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+                        mw1.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #67b11d;">(</span>req, resp, <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #b1951d;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">next1</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #b1951d;">)</span> <span style="color: #b1951d;">{</span>
+                                mw2.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #4f97d7;">(</span>req, resp, <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">next2</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+                                        mw3.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #2d9574;">(</span>req, resp, <span style="color: #bc6ec5; font-weight: bold;">Compose</span><span style="color: #9cb6ad;">(</span>next2, next1<span style="color: #9cb6ad;">)</span><span style="color: #2d9574;">)</span>
+                                <span style="color: #bc6ec5;">}</span><span style="color: #4f97d7;">)</span>
+                        <span style="color: #b1951d;">}</span><span style="color: #67b11d;">)</span>
+                <span style="color: #2d9574;">}</span>
+        <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+行文至此，这个 CPS 风格的 middleware 系统基本上就介绍完毕了。
+最后上示例来看看效果：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">type</span> <span style="color: #4f97d7;">(</span>
+        <span style="color: #ce537a; font-weight: bold;">Request</span>  = <span style="color: #ce537a; font-weight: bold;">int</span>
+        <span style="color: #ce537a; font-weight: bold;">Response</span> = <span style="color: #ce537a; font-weight: bold;">string</span>
+<span style="color: #4f97d7;">)</span>
+
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">main</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+
+        <span style="color: #7590db;">handler</span> := <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #bc6ec5;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span><span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">{</span>
+                fmt.<span style="color: #bc6ec5; font-weight: bold;">Println</span><span style="color: #2d9574;">(</span><span style="color: #2d9574;">"Handler"</span><span style="color: #2d9574;">)</span>
+                *resp = strconv.<span style="color: #bc6ec5; font-weight: bold;">FormatInt</span><span style="color: #2d9574;">(</span><span style="color: #bc6ec5; font-weight: bold;">int64</span><span style="color: #67b11d;">(</span>req<span style="color: #67b11d;">)</span>, <span style="color: #a45bad;">10</span><span style="color: #2d9574;">)</span>
+        <span style="color: #bc6ec5;">}</span>
+
+        <span style="color: #7590db;">mws</span> := <span style="color: #4f97d7;">make</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">[]</span><span style="color: #ce537a; font-weight: bold;">Middleware</span>, <span style="color: #a45bad;">3</span><span style="color: #bc6ec5;">)</span>
+        <span style="color: #4f97d7; font-weight: bold;">for</span> <span style="color: #7590db;">i</span> := <span style="color: #4f97d7; font-weight: bold;">range</span> mws <span style="color: #bc6ec5;">{</span>
+                <span style="color: #7590db;">i</span> := i
+                mws<span style="color: #2d9574;">[</span>i<span style="color: #2d9574;">]</span> = <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #2d9574;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">next</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+                        fmt.<span style="color: #bc6ec5; font-weight: bold;">Printf</span><span style="color: #67b11d;">(</span><span style="color: #2d9574;">"MW%d start...\n"</span>, i<span style="color: #67b11d;">)</span>
+                        next.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #67b11d;">(</span>req, resp, <span style="color: #bc6ec5; font-weight: bold;">LiftFn</span><span style="color: #b1951d;">(</span><span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+                                *resp = fmt.<span style="color: #bc6ec5; font-weight: bold;">Sprintf</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"returned from MW%d: [%s]"</span>, i, *resp<span style="color: #bc6ec5;">)</span>
+                                fmt.<span style="color: #bc6ec5; font-weight: bold;">Printf</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"MW%d end\n"</span>, i<span style="color: #bc6ec5;">)</span>
+                        <span style="color: #4f97d7;">}</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+                <span style="color: #2d9574;">}</span>
+        <span style="color: #bc6ec5;">}</span>
+
+        <span style="color: #7590db;">abortAtRespMws</span> := <span style="color: #4f97d7;">make</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">[]</span><span style="color: #ce537a; font-weight: bold;">Middleware</span>, <span style="color: #4f97d7;">len</span><span style="color: #2d9574;">(</span>mws<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+        <span style="color: #4f97d7; font-weight: bold;">for</span> <span style="color: #7590db;">i</span> := <span style="color: #4f97d7; font-weight: bold;">range</span> abortAtRespMws <span style="color: #bc6ec5;">{</span>
+                <span style="color: #7590db;">i</span> := i
+                abortAtRespMws<span style="color: #2d9574;">[</span>i<span style="color: #2d9574;">]</span> = <span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #2d9574;">(</span><span style="color: #7590db;">req</span> <span style="color: #ce537a; font-weight: bold;">Request</span>, <span style="color: #7590db;">resp</span> *<span style="color: #ce537a; font-weight: bold;">Response</span>, <span style="color: #7590db;">next</span> <span style="color: #ce537a; font-weight: bold;">Middleware</span><span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{</span>
+                        fmt.<span style="color: #bc6ec5; font-weight: bold;">Printf</span><span style="color: #67b11d;">(</span><span style="color: #2d9574;">"MW%d start...\n"</span>, i<span style="color: #67b11d;">)</span>
+                        next.<span style="color: #bc6ec5; font-weight: bold;">Pass</span><span style="color: #67b11d;">(</span>req, resp, <span style="color: #bc6ec5; font-weight: bold;">AbortWithFn</span><span style="color: #b1951d;">(</span><span style="color: #4f97d7; font-weight: bold;">func</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+                                fmt.<span style="color: #bc6ec5; font-weight: bold;">Printf</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"MW%d abort\n"</span>, i<span style="color: #bc6ec5;">)</span>
+                        <span style="color: #4f97d7;">}</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+                <span style="color: #2d9574;">}</span>
+        <span style="color: #bc6ec5;">}</span>
+
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">print out:</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">Start</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW0 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW1 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW2 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">Handler</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW2 end</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW1 end</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW0 end</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">Got resp: "returned from MW0: [returned from MW1: [returned from MW2: [1]]]"</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">End</span>
+        <span style="color: #bc6ec5; font-weight: bold;">Chain</span><span style="color: #bc6ec5;">(</span>Logger, mws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">0</span><span style="color: #2d9574;">]</span>, mws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">1</span><span style="color: #2d9574;">]</span>, mws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">2</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)(</span><span style="color: #bc6ec5; font-weight: bold;">handler</span><span style="color: #bc6ec5;">)(</span><span style="color: #a45bad;">1</span>, <span style="color: #4f97d7;">new</span><span style="color: #2d9574;">(</span><span style="color: #ce537a; font-weight: bold;">string</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">print out:</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">Start</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW0 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW1 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW2 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">Handler</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW2 end</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW1 end</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW0 abort</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">End</span>
+        <span style="color: #bc6ec5; font-weight: bold;">Chain</span><span style="color: #bc6ec5;">(</span>Logger, abortAtRespMws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">0</span><span style="color: #2d9574;">]</span>, mws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">1</span><span style="color: #2d9574;">]</span>, mws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">2</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)(</span><span style="color: #bc6ec5; font-weight: bold;">handler</span><span style="color: #bc6ec5;">)(</span><span style="color: #a45bad;">2</span>, <span style="color: #4f97d7;">new</span><span style="color: #2d9574;">(</span><span style="color: #ce537a; font-weight: bold;">string</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">print out:</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">Start</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW0 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW1 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW2 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">Handler</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW2 end</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW1 abort</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">End</span>
+        <span style="color: #bc6ec5; font-weight: bold;">Chain</span><span style="color: #bc6ec5;">(</span>Logger, mws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">0</span><span style="color: #2d9574;">]</span>, abortAtRespMws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">1</span><span style="color: #2d9574;">]</span>, mws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">2</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)(</span><span style="color: #bc6ec5; font-weight: bold;">handler</span><span style="color: #bc6ec5;">)(</span><span style="color: #a45bad;">3</span>, <span style="color: #4f97d7;">new</span><span style="color: #2d9574;">(</span><span style="color: #ce537a; font-weight: bold;">string</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">print out:</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">Start</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW0 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW1 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW2 start...</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">Handler</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">MW2 abort</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">End</span>
+        <span style="color: #bc6ec5; font-weight: bold;">Chain</span><span style="color: #bc6ec5;">(</span>Logger, mws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">0</span><span style="color: #2d9574;">]</span>, mws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">1</span><span style="color: #2d9574;">]</span>, abortAtRespMws<span style="color: #2d9574;">[</span><span style="color: #a45bad;">2</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)(</span><span style="color: #bc6ec5; font-weight: bold;">handler</span><span style="color: #bc6ec5;">)(</span><span style="color: #a45bad;">4</span>, <span style="color: #4f97d7;">new</span><span style="color: #2d9574;">(</span><span style="color: #ce537a; font-weight: bold;">string</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+</div>
+</body>
+</html>
