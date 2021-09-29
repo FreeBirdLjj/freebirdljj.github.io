@@ -1,4 +1,6 @@
-#+author:
+#+author: FreeBirdLjj
+#+email: freebirdljj@gmail.com
+
 #+options: html-postamble:nil
 #+options: toc:nil
 #+options: num:nil
@@ -20,3 +22,5 @@
 
 #+html_head: <link rel="stylesheet" type="text/css" href="css/predefined.css" />
 #+html_head: <link rel="stylesheet" type="text/css" href="css/worg.css" />
+
+#+rss_image_url: https://avatars.githubusercontent.com/FreeBirdLjj

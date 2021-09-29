@@ -3,11 +3,12 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-09-27 Mon 23:14 -->
+<!-- 2021-09-30 Thu 00:21 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Type Recursion in Golang</title>
 <meta name="generator" content="Org mode" />
+<meta name="author" content="FreeBirdLjj" />
 <script>
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -88,20 +89,20 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org0f5eb19">字典树</a></li>
-<li><a href="#orgbaf3c03">状态机</a></li>
-<li><a href="#org1c666d6">栈</a></li>
-<li><a href="#orga4054ab">指针</a></li>
-<li><a href="#orgc21891c">“好括号列”数组</a></li>
-<li><a href="#orgfd4d203">Y Combinator</a></li>
-<li><a href="#org123efd5">邱奇数</a></li>
+<li><a href="#orgbfc08ec">字典树</a></li>
+<li><a href="#org63fcb92">状态机</a></li>
+<li><a href="#org9369b84">栈</a></li>
+<li><a href="#orgc4c0712">指针</a></li>
+<li><a href="#orgb687c5a">“好括号列”数组</a></li>
+<li><a href="#orge272798">Y Combinator</a></li>
+<li><a href="#org402bff1">邱奇数</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org0f5eb19" class="outline-2">
-<h2 id="org0f5eb19">字典树</h2>
-<div class="outline-text-2" id="text-org0f5eb19">
+<div id="outline-container-orgbfc08ec" class="outline-2">
+<h2 id="orgbfc08ec">字典树</h2>
+<div class="outline-text-2" id="text-orgbfc08ec">
 <p>
 大家对字典树应该都不陌生，通常会选用一个 <code>struct</code> 来实现，不过这里我们利用递归定义的 <code>map</code> 类型来更方便地来定义 <code>Trie</code> 。
 </p>
@@ -188,9 +189,9 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 </div>
 </div>
 
-<div id="outline-container-orgbaf3c03" class="outline-2">
-<h2 id="orgbaf3c03">状态机</h2>
-<div class="outline-text-2" id="text-orgbaf3c03">
+<div id="outline-container-org63fcb92" class="outline-2">
+<h2 id="org63fcb92">状态机</h2>
+<div class="outline-text-2" id="text-org63fcb92">
 <p>
 既然都能够实现字典“树”了，只要我们减少对边的约束，我们就能将“树”改成“图”。
 </p>
@@ -248,7 +249,7 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 </p>
 
 
-<div id="org4059ee9" class="figure">
+<div id="orgca5bf56" class="figure">
 <p><img src="images/regexp_abc.png" alt="regexp_abc.png" width="80%" />
 </p>
 </div>
@@ -283,9 +284,9 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 </div>
 </div>
 
-<div id="outline-container-org1c666d6" class="outline-2">
-<h2 id="org1c666d6">栈</h2>
-<div class="outline-text-2" id="text-org1c666d6">
+<div id="outline-container-org9369b84" class="outline-2">
+<h2 id="org9369b84">栈</h2>
+<div class="outline-text-2" id="text-org9369b84">
 <p>
 函数式编程里面有个技巧是用闭包实现栈：通过压栈操作构造新的闭包；直接调用闭包就是获取栈顶或者弹栈操作。
 </p>
@@ -344,9 +345,9 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 </div>
 </div>
 
-<div id="outline-container-orga4054ab" class="outline-2">
-<h2 id="orga4054ab">指针</h2>
-<div class="outline-text-2" id="text-orga4054ab">
+<div id="outline-container-orgc4c0712" class="outline-2">
+<h2 id="orgc4c0712">指针</h2>
+<div class="outline-text-2" id="text-orgc4c0712">
 <div class="org-src-container">
 <pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">type</span> <span style="color: #ce537a; font-weight: bold;">Pointer</span> *<span style="color: #ce537a; font-weight: bold;">Pointer</span>
 </pre>
@@ -409,9 +410,9 @@ p = &amp;p
 </div>
 </div>
 
-<div id="outline-container-orgc21891c" class="outline-2">
-<h2 id="orgc21891c">“好括号列”数组</h2>
-<div class="outline-text-2" id="text-orgc21891c">
+<div id="outline-container-orgb687c5a" class="outline-2">
+<h2 id="orgb687c5a">“好括号列”数组</h2>
+<div class="outline-text-2" id="text-orgb687c5a">
 <p>
 “好括号列”是指：仅由相同数目的左右括号数构成的序列且从前向后遍历时任意一步已遍历的右括号都不多于已遍历的左括号。
 </p>
@@ -445,9 +446,9 @@ p = &amp;p
 </div>
 </div>
 
-<div id="outline-container-orgfd4d203" class="outline-2">
-<h2 id="orgfd4d203">Y Combinator</h2>
-<div class="outline-text-2" id="text-orgfd4d203">
+<div id="outline-container-orge272798" class="outline-2">
+<h2 id="orge272798">Y Combinator</h2>
+<div class="outline-text-2" id="text-orge272798">
 <p>
 在 λ 演算里有个很经典的 Y combinator 问题，简单来说：如何在仅使用匿名函数调用（因而无法直接递归）的限制条件下实现递归的逻辑。
 </p>
@@ -499,9 +500,9 @@ p = &amp;p
 </div>
 </div>
 
-<div id="outline-container-org123efd5" class="outline-2">
-<h2 id="org123efd5">邱奇数</h2>
-<div class="outline-text-2" id="text-org123efd5">
+<div id="outline-container-org402bff1" class="outline-2">
+<h2 id="org402bff1">邱奇数</h2>
+<div class="outline-text-2" id="text-org402bff1">
 <p>
 另一个 λ 演算的经典问题是邱奇数，简单说来就是：给定一个类型为 <code>func(X) X</code> 的函数 <code>f</code> 和一个类型为 <code>X</code> 的值 <code>x</code> ，那么就用 <code>x</code> 来表示自然数 \(0\) 、 <code>f(x)</code> 来表示自然数 \(1\) 、 <code>f(f(x))</code> 来表示自然数 \(2\) 、…，也就是用 \(n\) 重 <code>f</code> 复合作用在 <code>x</code> 上的结果作为自然数 \(n\) 的编码。
 </p>

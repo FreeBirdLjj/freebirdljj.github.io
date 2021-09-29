@@ -1,0 +1,52 @@
+#+setupfile: common.org
+#+title: FreeBirdLjj's blog
+
+* [[file:A Little Idea about Middleware.org][A Little Idea about Middleware]]
+  :PROPERTIES:
+  :ID:            8AB1FAEC-63EA-4231-90E6-18DE4BA06186
+  :PUBDATE:       <2021-09-02 Thu 00:39>
+  :RSS_TITLE:     A Little Idea about Middleware
+  :RSS_PERMALINK: A Little Idea about Middleware.html
+  :END:
+* [[file:Type Recursion in Golang.org][Type Recursion in Golang]]
+  :PROPERTIES:
+  :ID:            E0C4F6C4-BF7D-4D1E-A6D1-52450C0E866C
+  :PUBDATE:       <2021-07-17 Sat 00:16>
+  :RSS_TITLE:     Type Recursion in Golang
+  :RSS_PERMALINK: Type Recursion in Golang.html
+  :END:
+* [[file:Use Template as Interface.org][Use Template as Interface]]
+  :PROPERTIES:
+  :ID:            9739B405-1C3A-40E4-BDAA-24855029F1AC
+  :PUBDATE:       <2018-11-16 Fri 01:58>
+  :RSS_TITLE:     Use Template as Interface
+  :RSS_PERMALINK: Use Template as Interface.html
+  :END:
+* [[file:Implement Monad in Language with Coroutine.org][Implement Monad in Language with Coroutine]]
+  :PROPERTIES:
+  :ID:            6C585511-B37C-4BBF-8A06-896F9DCFCDA6
+  :PUBDATE:       <2018-09-05 Wed 03:06>
+  :RSS_TITLE:     Implement Monad in Language with Coroutine
+  :RSS_PERMALINK: Implement Monad in Language with Coroutine.html
+  :END:
+* [[file:Implement golang-like Interface in C++.org][Implement golang-like Interface in C++]]
+  :PROPERTIES:
+  :ID:            19E48FAE-1FFE-47D9-A013-1A5D93E26444
+  :PUBDATE:       <2018-06-24 Sun 18:35>
+  :RSS_TITLE:     Implement golang-like Interface in C++
+  :RSS_PERMALINK: Implement golang-like Interface in C++.html
+  :END:
+* [[file:Implicit Rules of `make`.org][Implicit Rules of `make`]]
+  :PROPERTIES:
+  :ID:            AB7572DE-F1F7-481E-A347-B1849D0F193A
+  :PUBDATE:       <2017-06-16 Fri 00:30>
+  :RSS_TITLE:     Implicit Rules of `make`
+  :RSS_PERMALINK: Implicit Rules of `make`.html
+  :END:
+* [[file:Golang Guards.org][Golang Guards]]
+  :PROPERTIES:
+  :ID:            24DEC472-B1BD-4DED-9312-9D1BEDF208E2
+  :PUBDATE:       <2017-05-19 Fri 01:27>
+  :RSS_TITLE:     Golang Guards
+  :RSS_PERMALINK: Golang Guards.html
+  :END:
