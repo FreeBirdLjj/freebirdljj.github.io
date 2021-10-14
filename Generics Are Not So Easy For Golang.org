@@ -1,0 +1,279 @@
+#+setupfile: common.org
+#+title: Generics Are Not So Easy For Golang
+
+Go 1.17 带来了试验性的泛型支持。
+目前已经是 Go 1.17.2 了，可是笔者测试了一下仍然有不少问题。
+
+先来看一个简单的例子：
+
+#+BEGIN_SRC go
+func ex1f[T any]() {
+	ex1f[[]T]()
+}
+#+END_SRC
+
+如果不对 =ex1f= 进行实例化，那么一切安好。
+但一旦实例化 =ex1f= （比如在非泛型函数中调用 =ex1f[int]()= ），则会发现 Go compile 进程会吃掉 100% （一个核）的 CPU 并且内存持续上涨，直到 OOM 方才罢休。
+
+也许有读者会说同样的代码换到 C++ 编译器一样不能处理，可是 C++ 是 parametric polymorphism 而 Go 是 ad hoc polymorphism ，这导致其实 C++ 是没办法处理而 Go 其实是有处理的可能的。
+不妨看看同为 ad hoc polymorphism 的 Haskell 表现如何：
+
+#+BEGIN_SRC haskell
+ex1f x = let y = ex1f [x] in ()
+#+END_SRC
+
+Haskell （其实是 ghc ）正确地识别出了 infinite type 而避免了陷入无尽的循环：
+
+#+BEGIN_SRC
+<interactive>:1:24: error:
+    • Occurs check: cannot construct the infinite type: a ~ [a]
+    • In the expression: x
+      In the first argument of ‘ex1f’, namely ‘[x]’
+      In the expression: ex1f [x]
+    • Relevant bindings include
+        x :: [a] (bound at <interactive>:1:6)
+        ex1f :: [a] -> () (bound at <interactive>:1:1)
+#+END_SRC
+
+我们将第一个例子稍加改动，就会得到一个让 Go compiler panic 的代码：
+
+#+BEGIN_SRC go
+func ex2f[T any](x T) {
+	ex2f[[]T](nil)
+}
+#+END_SRC
+
+同 =ex1f= 一样只要不对 =ex2f= 进行实例化则一切安好。
+但只要一旦实例化 =ex2f= （比如在非泛型函数中调用 =ex2f[int](0)= ），就能看到如下 Go compiler （注意不是编译出的程序）的 panic 信息：
+
+#+BEGIN_SRC
+# test
+panic: cannot SetOp XXX on XXX
+
+goroutine 1 [running]:
+cmd/compile/internal/ir.(*ConvExpr).SetOp(0xc00037ab90, 0xa8)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/expr.go:279 +0xd9
+cmd/compile/internal/ir.NewConvExpr({0x369b90, 0xc0}, 0x80, 0xc000368380, {0x1a4b090, 0xc0000bf980})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/expr.go:267 +0xae
+cmd/compile/internal/noder.assignconvfn({0x1a4b090, 0xc0000bf980}, 0xc000368380)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/transform.go:421 +0xb3
+cmd/compile/internal/noder.typecheckaste(0xa0, {0xc00031e5a0, 0x17d364a}, 0x0, 0xc0003754c8, {0xc00009ea40, 0x1, 0xc00036bd40})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/transform.go:467 +0x179
+cmd/compile/internal/noder.transformCall(0xc00031e5a0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/transform.go:151 +0x176
+cmd/compile/internal/noder.(*irgen).stencil.func1({0x1a49b78, 0xc00031e5a0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/stencil.go:106 +0x225
+cmd/compile/internal/ir.Visit.func1({0x1a49b78, 0xc00031e5a0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/visit.go:105 +0x30
+cmd/compile/internal/ir.doNodes({0xc00009ea30, 0x1, 0xc0000c0ed0}, 0xc0000b4780)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/node_gen.go:1440 +0x67
+cmd/compile/internal/ir.(*Func).doChildren(0x1a4a348, 0xc0000fc6e0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/func.go:151 +0x2e
+cmd/compile/internal/ir.DoChildren(...)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/visit.go:94
+cmd/compile/internal/ir.Visit.func1({0x1a4a348, 0xc0000fc6e0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/visit.go:106 +0x57
+cmd/compile/internal/ir.Visit({0x1a4a348, 0xc0000fc6e0}, 0xc00008e9e0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/visit.go:108 +0xb8
+cmd/compile/internal/noder.(*irgen).stencil(0xc00031e2d0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/stencil.go:76 +0x1a5
+cmd/compile/internal/noder.(*irgen).generate(0xc00031e2d0, {0xc00009e7f0, 0x2, 0xc00009e840})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/irgen.go:185 +0x25d
+cmd/compile/internal/noder.check2({0xc00009e7f0, 0x0, 0x2})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/irgen.go:78 +0x5da
+cmd/compile/internal/noder.LoadPackage({0xc0000c4110, 0x2, 0x0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/noder.go:80 +0x30b
+cmd/compile/internal/gc.Main(0x1912d08)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/main.go:192 +0xb2e
+main.main()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/main.go:55 +0xdd
+#+END_SRC
+
+不得不吐槽一下 "cannot SetOp XXX on XXX" 实在是一句丑得不能再丑的错误信息。
+
+接下来我们考虑一段代码，涉及到一个会“膨胀”的类型 =ex3t= ：
+
+#+BEGIN_SRC go
+type ex3t[T any] map[int]ex3t[ex3t[T]]
+
+func ex3f() {
+	var x ex3t[int]
+	// print out:
+	// 	main.ex3t[ex3t[ex3t[int]]]
+	fmt.Printf("%T\n", x[1][2][3][4][5])
+}
+#+END_SRC
+
+代码成功编译-运行，看起来好像没什么问题。
+但是从输出结果来看这个类型应当是不正确的。
+
+让我们列个表来算算 =x= 、 =x[1]= 、 =x[1][2]= 、 =x[1][2][3]= 、 =x[1][2][3][4]= 、 =x[1][2][3][4][5]= 、… 的类型（注意下一行的 type 就是上一行 desugared type 去掉 =map[int]= 前缀）：
+
+| expr               | type                                    | desugared type                                        |
+|--------------------+-----------------------------------------+-------------------------------------------------------|
+| =x=                | =ex3t[T]=                               | =map[int]ex3t[ex3t[T]]=                               |
+| =x[1]=             | =ex3t[ex3t[T]]=                         | =map[int]ex3t[ex3t[ex3t[T]]]=                         |
+| =x[1][2]=          | =ex3t[ex3t[ex3t[T]]]=                   | =map[int]ex3t[ex3t[ex3t[ex3t[T]]]]=                   |
+| =x[1][2][3]=       | =ex3t[ex3t[ex3t[ex3t[T]]]]=             | =map[int]ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]=             |
+| =x[1][2][3][4]=    | =ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]=       | =map[int]ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]]=       |
+| =x[1][2][3][4][5]= | =ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]]= | =map[int]ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]]]= |
+| ...                | ...                                     | ...                                                   |
+
+看起来经过 $n$ 次 index 操作之后， =x[...]= 的类型应该是有 $n + 1$ 重的 =ex3t= ，而在 =ex3f()= 的，无论再增加多少次 index 操作都还是 $3$ 重 =ex3t= 。
+
+我们也可以换个思路来得出/验证这个结论：定义一个专用的 =ex4t= 并为之提供 =Index= 方法，使得类型为 =ex4t[T]= 的值经过 =Index= 可以得到类型为 =ex4t[ex4t[T]]= 的值。
+具体代码如下：
+
+#+BEGIN_SRC go
+type ex4t[T any] struct{}
+
+func (ex4t[T]) Index(int) ex4t[ex4t[T]] {
+	return struct{}{}
+}
+
+func ex4f() {
+	var x ex4t[int]
+	// print out:
+	// 	main.ex4t[ex4t[ex4t[ex4t[ex4t[ex4t[int]]]]]]
+	fmt.Printf("%T\n", x.Index(1).Index(2).Index(3).Index(4).Index(5))
+}
+#+END_SRC
+
+可以看到同样经过 5 次 =Index= 操作后，得到的是符合预期的 =ex4t[ex4t[ex4t[ex4t[ex4t[ex4t[int]]]]]]= 。
+
+如果我们参照 =ex4t= 为 =ex3t= 添加同样类型的 =Index= 方法：
+
+#+BEGIN_SRC go
+func (ex3t[T]) Index(int) ex3t[ex3t[T]] {
+	return nil
+}
+#+END_SRC
+
+仅仅是添加一个新方法还尚未修改 =ex3f= 时 Go compile 就已经会 panic 了：
+
+#+BEGIN_SRC
+# test
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0xa0 pc=0x11a9202]
+
+goroutine 1 [running]:
+cmd/compile/internal/ir.(*Name).TypeDefn(0x18d9ba0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/name.go:146 +0x22
+cmd/compile/internal/types.findTypeLoop(0xc0000e0e00, 0xc0000977b8)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:239 +0x290
+cmd/compile/internal/types.reportTypeLoop(0xc0000e0e00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:277 +0x65
+cmd/compile/internal/types.CalcSize(0xc0000e0e00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:432 +0x68b
+cmd/compile/internal/types.calcStructOffset(0xc0000e2a10, 0xc0000e2bd0, 0x10, 0x8)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:157 +0xd3
+cmd/compile/internal/types.CalcSize(0xc00046fc00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:488 +0x917
+cmd/compile/internal/types.ResumeCheckSize()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:576 +0x4e
+cmd/compile/internal/types.CalcSize(0xc0000e2a10)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:515 +0xb14
+cmd/compile/internal/gc.prepareFunc(0xc0000fa840)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/compile.go:88 +0x39
+cmd/compile/internal/gc.enqueueFunc(0xc0000fa840)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/compile.go:66 +0x2f7
+cmd/compile/internal/gc.Main(0x1912d08)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/main.go:281 +0xe05
+main.main()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/main.go:55 +0xdd
+#+END_SRC
+
+将 =ex3f= 参照 =ex4f= 进行修改并重命名为 =ex3f2= ：
+
+#+BEGIN_SRC go
+func ex3f2() {
+	var x ex3t[int]
+	fmt.Printf("%T\n", x.Index(1).Index(2).Index(3).Index(4).Index(5))
+}
+#+END_SRC
+
+又会碰到 Go compile 的另一个 panic ：
+
+#+BEGIN_SRC
+# test
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0xa0 pc=0x11a9202]
+
+goroutine 1 [running]:
+cmd/compile/internal/ir.(*Name).TypeDefn(0x18d9ba0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/name.go:146 +0x22
+cmd/compile/internal/types.findTypeLoop(0xc00007ee00, 0xc0004982b0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:239 +0x290
+cmd/compile/internal/types.reportTypeLoop(0xc00007ee00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:277 +0x65
+cmd/compile/internal/types.CalcSize(0xc00007ee00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:432 +0x68b
+cmd/compile/internal/types.calcStructOffset(0xc000073180, 0xc000073340, 0x8, 0x8)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:157 +0xd3
+cmd/compile/internal/types.CalcSize(0xc0000733b0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:488 +0x917
+cmd/compile/internal/types.ResumeCheckSize()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:576 +0x4e
+cmd/compile/internal/types.CalcSize(0xc000073180)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:515 +0xb14
+cmd/compile/internal/types.CheckSize(0xc000073180)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:555 +0x156
+cmd/compile/internal/noder.(*irgen).typ(0xc00007ec40, {0x1a33f28, 0xc000377aa0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/types.go:41 +0x7e
+cmd/compile/internal/noder.(*irgen).selectorExpr(0xc00031f0e0, {0x1a2fbe0, 0x0}, {0x1a33f28, 0xc000377aa0}, 0xc00039c480)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:285 +0xb45
+cmd/compile/internal/noder.(*irgen).expr0(0xc00031f0e0, {0x1a33f28, 0xc000377aa0}, {0x1a35898, 0xc00039c480})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:174 +0xa90
+cmd/compile/internal/noder.(*irgen).expr(0xc00031f0e0, {0x1a35898, 0xc00039c480})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:73 +0x58f
+cmd/compile/internal/noder.(*irgen).expr0(0xc00031f0e0, {0x1a33ed8, 0xc00031efc0}, {0x1a353b8, 0xc0003b22c0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:103 +0x119
+cmd/compile/internal/noder.(*irgen).expr(0xc00031f0e0, {0x1a353b8, 0xc0003b22c0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:73 +0x58f
+cmd/compile/internal/noder.(*irgen).exprs(0xc00031f0e0, {0xc0003b03e0, 0x2, 0x0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:329 +0x8e
+cmd/compile/internal/noder.(*irgen).expr0(0xc00031f0e0, {0x1a33fc8, 0xc0000b4750}, {0x1a353b8, 0xc0003b2180})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:129 +0xd6e
+cmd/compile/internal/noder.(*irgen).expr(0xc00031f0e0, {0x1a353b8, 0xc0003b2180})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:73 +0x58f
+cmd/compile/internal/noder.(*irgen).stmt(0xc00031f0e0, {0x1a35538, 0xc0003b0400})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/stmt.go:38 +0x835
+cmd/compile/internal/noder.(*irgen).stmts(0xc00007e700, {0xc0003b0420, 0x2, 0x148})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/stmt.go:18 +0xaf
+cmd/compile/internal/noder.(*irgen).funcBody(0xc00031f0e0, 0xc0000fc420, 0x0, 0xc0003b2100, 0xc0003b2140)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/func.go:46 +0x25e
+cmd/compile/internal/noder.(*irgen).funcDecl(0xc00031f0e0, 0xc000499678, 0xc0003a2120)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/decl.go:98 +0x255
+cmd/compile/internal/noder.(*irgen).decls(0xc00031f0e0, {0xc0003b4010, 0x4, 0x203000})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/decl.go:28 +0x152
+cmd/compile/internal/noder.(*irgen).generate(0xc00031f0e0, {0xc00009e7e0, 0x2, 0xc0003a40d0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/irgen.go:160 +0x4bd
+cmd/compile/internal/noder.check2({0xc00009e7e0, 0x0, 0x2})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/irgen.go:78 +0x5da
+cmd/compile/internal/noder.LoadPackage({0xc0000c4110, 0x2, 0x0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/noder.go:80 +0x30b
+cmd/compile/internal/gc.Main(0x1912d08)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/main.go:192 +0xb2e
+main.main()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/main.go:55 +0xdd
+#+END_SRC
+
+注意这两个 panic 虽然最终爆出的是同一行代码，但是执行路径（栈信息）是不同的。
+
+列举上面这些例子应当能够说明一定程度上泛型对 Go 而言并不容易实现。
+
+不过真正让笔者认为泛型支持对 Go 而言不容易实现的原因在于：泛型是一种相对复杂的类型演算（考虑一下 Curry-Howard correspondence ）；而 Go 的类型推演目前连相对简单的“记住” =struct= 的 field 的类型都做不到。
+比如对比一下填充 =map= 的 value 和 =struct= 的 field：
+
+#+BEGIN_SRC go
+canBeOmitted := map[string]bytes.Buffer{
+	"buf": /*bytes.Buffer*/{},
+}
+cannotBeOmmitted := struct {
+	buf bytes.Buffer
+}{
+	buf: bytes.Buffer{},
+}
+#+END_SRC
+
+解决问题的顺序都是先易后难的吧？

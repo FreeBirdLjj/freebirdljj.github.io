@@ -1,6 +1,13 @@
 #+setupfile: common.org
 #+title: FreeBirdLjj's blog
 
+* [[file:Generics Are Not So Easy For Golang.org][Generics Are Not So Easy For Golang]]
+  :PROPERTIES:
+  :ID:            B421DE8B-A077-40C7-B9BF-9A3544563390
+  :PUBDATE:       <2021-10-15 Fri 00:04>
+  :RSS_TITLE:     Generics Are Not So Easy For Golang
+  :RSS_PERMALINK: Generics Are Not So Easy For Golang.html
+  :END:
 * [[file:A Little Idea about Middleware.org][A Little Idea about Middleware]]
   :PROPERTIES:
   :ID:            8AB1FAEC-63EA-4231-90E6-18DE4BA06186
