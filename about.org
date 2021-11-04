@@ -1,0 +1,6 @@
+#+setupfile: common.org
+#+title: About
+
+别处的身影：
+
+| [[https://github.com/FreeBirdLjj][GitHub]] | [[https://twitter.com/FreeBirdLjj][Twitter]] |

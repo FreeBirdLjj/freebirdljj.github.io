@@ -1,1 +1,5 @@
+\\
+#+ATTR_HTML: :align center
+| [[file:rss.xml][RSS]] | [[file:about.org][ABOUT]] |
+
 #+include: "rss.org"
