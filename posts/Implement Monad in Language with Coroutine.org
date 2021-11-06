@@ -1,4 +1,4 @@
-#+setupfile: common.org
+#+setupfile: dir-common.org
 #+title: Implement Monad in Language with Coroutine
 
 Haskell 的 monad 配合上 do notation 的语法糖在实际中可以节省若干代码（类似 golang 的 error check）或从回调地狱中逃离。

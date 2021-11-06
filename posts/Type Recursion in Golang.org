@@ -1,4 +1,4 @@
-#+setupfile: common.org
+#+setupfile: dir-common.org
 #+title: Type Recursion in Golang
 
 /注：本文最早是很久以前发布在公司的技术公众号上的，后来在 Go 夜读的第 98 期（<2020-07-30>）也讲过，现在搬运回我自己的博客。/
@@ -131,7 +131,7 @@ func Match(s string, st State) bool {
 例如对于 =((a|b)?c)*= 这个正则表达式，我们可以构建出这样一个有限自动机：
 
 #+ATTR_HTML: :width 80%
-[[file:images/regexp_abc.png]]
+[[file:../assets/images/regexp_abc.png]]
 
 构造这个有限自动机的过程中我们也会体会到因为使用 =map= 而能够进行 =[]= 操作所带来的便利。
 

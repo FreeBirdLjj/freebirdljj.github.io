@@ -1,4 +1,4 @@
-#+setupfile: common.org
+#+setupfile: dir-common.org
 #+title: Golang Guards
 
 golang 的 =defer= 机制用来在函数返回时执行清理操作。

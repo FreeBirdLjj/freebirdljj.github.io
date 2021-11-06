@@ -1,4 +1,4 @@
-#+setupfile: common.org
+#+setupfile: dir-common.org
 #+title: Implement golang-like Interface in C++
 
 golang 的接口是 "duck-typing" 的，不需要显式声明实现某一接口，只需要实现接口中的方法就可以了。

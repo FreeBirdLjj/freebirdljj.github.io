@@ -1,4 +1,4 @@
-#+setupfile: common.org
+#+setupfile: dir-common.org
 #+title: About
 
 别处的身影：

@@ -14,8 +14,8 @@
   <link>https://freebirdljj.github.io</link>
   <description><![CDATA[]]></description>
   <language>en</language>
-  <pubDate>Fri, 15 Oct 2021 00:04:55 +0800</pubDate>
-  <lastBuildDate>Fri, 15 Oct 2021 00:04:55 +0800</lastBuildDate>
+  <pubDate>Sun, 07 Nov 2021 00:37:43 +0800</pubDate>
+  <lastBuildDate>Sun, 07 Nov 2021 00:37:43 +0800</lastBuildDate>
   <generator>Emacs 27.2 Org-mode 9.4.6</generator>
   <webMaster>freebirdljj@gmail.com (FreeBirdLjj)</webMaster>
   <image>
@@ -27,72 +27,72 @@
 
   <item>
     <title>Generics Are Not So Easy For Golang</title>
-    <link>https://freebirdljj.github.io/Generics Are Not So Easy For Golang.html</link>
+    <link>https://freebirdljj.github.io/posts/Generics Are Not So Easy For Golang.html</link>
     <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
-    <guid isPermaLink="false">https://freebirdljj.github.io/Generics Are Not So Easy For Golang.html</guid>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/Generics Are Not So Easy For Golang.html</guid>
     <pubDate>Fri, 15 Oct 2021 00:04:00 +0800</pubDate>
 
     <description><![CDATA[]]></description>
   </item>
   <item>
     <title>A Little Idea about Middleware</title>
-    <link>https://freebirdljj.github.io/A Little Idea about Middleware.html</link>
+    <link>https://freebirdljj.github.io/posts/A Little Idea about Middleware.html</link>
     <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
-    <guid isPermaLink="false">https://freebirdljj.github.io/A Little Idea about Middleware.html</guid>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/A Little Idea about Middleware.html</guid>
     <pubDate>Thu, 02 Sep 2021 00:39:00 +0800</pubDate>
 
     <description><![CDATA[]]></description>
   </item>
   <item>
     <title>Type Recursion in Golang</title>
-    <link>https://freebirdljj.github.io/Type Recursion in Golang.html</link>
+    <link>https://freebirdljj.github.io/posts/Type Recursion in Golang.html</link>
     <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
-    <guid isPermaLink="false">https://freebirdljj.github.io/Type Recursion in Golang.html</guid>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/Type Recursion in Golang.html</guid>
     <pubDate>Sat, 17 Jul 2021 00:16:00 +0800</pubDate>
 
     <description><![CDATA[]]></description>
   </item>
   <item>
     <title>Use Template as Interface</title>
-    <link>https://freebirdljj.github.io/Use Template as Interface.html</link>
+    <link>https://freebirdljj.github.io/posts/Use Template as Interface.html</link>
     <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
-    <guid isPermaLink="false">https://freebirdljj.github.io/Use Template as Interface.html</guid>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/Use Template as Interface.html</guid>
     <pubDate>Fri, 16 Nov 2018 01:58:00 +0800</pubDate>
 
     <description><![CDATA[]]></description>
   </item>
   <item>
     <title>Implement Monad in Language with Coroutine</title>
-    <link>https://freebirdljj.github.io/Implement Monad in Language with Coroutine.html</link>
+    <link>https://freebirdljj.github.io/posts/Implement Monad in Language with Coroutine.html</link>
     <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
-    <guid isPermaLink="false">https://freebirdljj.github.io/Implement Monad in Language with Coroutine.html</guid>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/Implement Monad in Language with Coroutine.html</guid>
     <pubDate>Wed, 05 Sep 2018 03:06:00 +0800</pubDate>
 
     <description><![CDATA[]]></description>
   </item>
   <item>
     <title>Implement golang-like Interface in C++</title>
-    <link>https://freebirdljj.github.io/Implement golang-like Interface in C++.html</link>
+    <link>https://freebirdljj.github.io/posts/Implement golang-like Interface in C++.html</link>
     <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
-    <guid isPermaLink="false">https://freebirdljj.github.io/Implement golang-like Interface in C++.html</guid>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/Implement golang-like Interface in C++.html</guid>
     <pubDate>Sun, 24 Jun 2018 18:35:00 +0800</pubDate>
 
     <description><![CDATA[]]></description>
   </item>
   <item>
     <title>Implicit Rules of `make`</title>
-    <link>https://freebirdljj.github.io/Implicit Rules of `make`.html</link>
+    <link>https://freebirdljj.github.io/posts/Implicit Rules of `make`.html</link>
     <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
-    <guid isPermaLink="false">https://freebirdljj.github.io/Implicit Rules of `make`.html</guid>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/Implicit Rules of `make`.html</guid>
     <pubDate>Fri, 16 Jun 2017 00:30:00 +0800</pubDate>
 
     <description><![CDATA[]]></description>
   </item>
   <item>
     <title>Golang Guards</title>
-    <link>https://freebirdljj.github.io/Golang Guards.html</link>
+    <link>https://freebirdljj.github.io/posts/Golang Guards.html</link>
     <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
-    <guid isPermaLink="false">https://freebirdljj.github.io/Golang Guards.html</guid>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/Golang Guards.html</guid>
     <pubDate>Fri, 19 May 2017 01:27:00 +0800</pubDate>
 
     <description><![CDATA[]]></description>

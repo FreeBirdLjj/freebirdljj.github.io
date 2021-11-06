@@ -1,4 +1,4 @@
-#+setupfile: common.org
+#+setupfile: dir-common.org
 #+title: Use Template as Interface
 
 通常，面向对象的编程语言都有接口这样的抽象机制。

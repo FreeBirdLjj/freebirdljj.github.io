@@ -1,4 +1,4 @@
-#+setupfile: common.org
+#+setupfile: dir-common.org
 #+title: Implicit Rules of `make`
 
 =make= 有一些隐含的（默认的）推导规则，掌握这些隐含规则不仅能帮我们简化 Makefile 的编写，也能避免我们写出的 Makefile 在 =make= 时出现奇怪的现象。

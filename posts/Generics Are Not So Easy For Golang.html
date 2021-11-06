@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2021-11-07 Sun 00:56 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Generics Are Not So Easy For Golang</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="FreeBirdLjj" />
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-99387301-1', 'auto');
+ga('send', 'pageview');
+</script>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" type="text/css" href="/assets/css/predefined.css" />
+<link rel="stylesheet" type="text/css" href="/assets/css/worg.css" />
+<script type="text/javascript">
+// @license magnet:?xt=urn:btih:1f739d935676111cfff4b4693e3816e664797050&amp;dn=gpl-3.0.txt GPL-v3-or-Later
+<!--/*--><![CDATA[/*><!--*/
+     function CodeHighlightOn(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.add("code-highlighted");
+         target.classList.add("code-highlighted");
+       }
+     }
+     function CodeHighlightOff(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.remove("code-highlighted");
+         target.classList.remove("code-highlighted");
+       }
+     }
+    /*]]>*///-->
+// @license-end
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 100,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 100,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 100},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="https://freebirdljj.github.io"> UP </a>
+ |
+ <a accesskey="H" href="https://freebirdljj.github.io"> HOME </a>
+</div><div id="content">
+<h1 class="title">Generics Are Not So Easy For Golang</h1>
+<p>
+Go 1.17 带来了试验性的泛型支持。
+目前已经是 Go 1.17.2 了，可是笔者测试了一下仍然有不少问题。
+</p>
+
+<p>
+先来看一个简单的例子：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">ex1f</span><span style="color: #4f97d7;">[</span>T <span style="color: #ce537a; font-weight: bold;">any</span><span style="color: #4f97d7;">]()</span> <span style="color: #4f97d7;">{</span>
+        ex1f<span style="color: #bc6ec5;">[</span><span style="color: #2d9574;">[]</span><span style="color: #ce537a; font-weight: bold;">T</span><span style="color: #bc6ec5;">]()</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+如果不对 <code>ex1f</code> 进行实例化，那么一切安好。
+但一旦实例化 <code>ex1f</code> （比如在非泛型函数中调用 <code>ex1f[int]()</code> ），则会发现 Go compile 进程会吃掉 100% （一个核）的 CPU 并且内存持续上涨，直到 OOM 方才罢休。
+</p>
+
+<p>
+也许有读者会说同样的代码换到 C++ 编译器一样不能处理，可是 C++ 是 parametric polymorphism 而 Go 是 ad hoc polymorphism ，这导致其实 C++ 是没办法处理而 Go 其实是有处理的可能的。
+不妨看看同为 ad hoc polymorphism 的 Haskell 表现如何：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-haskell"><span style="color: #bc6ec5; font-weight: bold;">ex1f</span> x <span style="color: #7590db;">=</span> <span style="color: #4f97d7; font-weight: bold;">let</span> y <span style="color: #7590db;">=</span> ex1f <span style="color: #4f97d7;">[</span>x<span style="color: #4f97d7;">]</span> <span style="color: #4f97d7; font-weight: bold;">in</span> <span style="color: #4f97d7; font-weight: bold;">()</span>
+</pre>
+</div>
+
+<p>
+Haskell （其实是 ghc ）正确地识别出了 infinite type 而避免了陷入无尽的循环：
+</p>
+
+<pre class="example">
+&lt;interactive&gt;:1:24: error:
+    • Occurs check: cannot construct the infinite type: a ~ [a]
+    • In the expression: x
+      In the first argument of ‘ex1f’, namely ‘[x]’
+      In the expression: ex1f [x]
+    • Relevant bindings include
+        x :: [a] (bound at &lt;interactive&gt;:1:6)
+        ex1f :: [a] -&gt; () (bound at &lt;interactive&gt;:1:1)
+</pre>
+
+<p>
+我们将第一个例子稍加改动，就会得到一个让 Go compiler panic 的代码：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">ex2f</span><span style="color: #4f97d7;">[</span>T <span style="color: #ce537a; font-weight: bold;">any</span><span style="color: #4f97d7;">](</span>x <span style="color: #ce537a; font-weight: bold;">T</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+        ex2f<span style="color: #bc6ec5;">[</span><span style="color: #2d9574;">[]</span><span style="color: #ce537a; font-weight: bold;">T</span><span style="color: #bc6ec5;">](</span><span style="color: #a45bad;">nil</span><span style="color: #bc6ec5;">)</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+同 <code>ex1f</code> 一样只要不对 <code>ex2f</code> 进行实例化则一切安好。
+但只要一旦实例化 <code>ex2f</code> （比如在非泛型函数中调用 <code>ex2f[int](0)</code> ），就能看到如下 Go compiler （注意不是编译出的程序）的 panic 信息：
+</p>
+
+<pre class="example">
+# test
+panic: cannot SetOp XXX on XXX
+
+goroutine 1 [running]:
+cmd/compile/internal/ir.(*ConvExpr).SetOp(0xc00037ab90, 0xa8)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/expr.go:279 +0xd9
+cmd/compile/internal/ir.NewConvExpr({0x369b90, 0xc0}, 0x80, 0xc000368380, {0x1a4b090, 0xc0000bf980})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/expr.go:267 +0xae
+cmd/compile/internal/noder.assignconvfn({0x1a4b090, 0xc0000bf980}, 0xc000368380)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/transform.go:421 +0xb3
+cmd/compile/internal/noder.typecheckaste(0xa0, {0xc00031e5a0, 0x17d364a}, 0x0, 0xc0003754c8, {0xc00009ea40, 0x1, 0xc00036bd40})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/transform.go:467 +0x179
+cmd/compile/internal/noder.transformCall(0xc00031e5a0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/transform.go:151 +0x176
+cmd/compile/internal/noder.(*irgen).stencil.func1({0x1a49b78, 0xc00031e5a0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/stencil.go:106 +0x225
+cmd/compile/internal/ir.Visit.func1({0x1a49b78, 0xc00031e5a0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/visit.go:105 +0x30
+cmd/compile/internal/ir.doNodes({0xc00009ea30, 0x1, 0xc0000c0ed0}, 0xc0000b4780)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/node_gen.go:1440 +0x67
+cmd/compile/internal/ir.(*Func).doChildren(0x1a4a348, 0xc0000fc6e0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/func.go:151 +0x2e
+cmd/compile/internal/ir.DoChildren(...)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/visit.go:94
+cmd/compile/internal/ir.Visit.func1({0x1a4a348, 0xc0000fc6e0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/visit.go:106 +0x57
+cmd/compile/internal/ir.Visit({0x1a4a348, 0xc0000fc6e0}, 0xc00008e9e0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/visit.go:108 +0xb8
+cmd/compile/internal/noder.(*irgen).stencil(0xc00031e2d0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/stencil.go:76 +0x1a5
+cmd/compile/internal/noder.(*irgen).generate(0xc00031e2d0, {0xc00009e7f0, 0x2, 0xc00009e840})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/irgen.go:185 +0x25d
+cmd/compile/internal/noder.check2({0xc00009e7f0, 0x0, 0x2})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/irgen.go:78 +0x5da
+cmd/compile/internal/noder.LoadPackage({0xc0000c4110, 0x2, 0x0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/noder.go:80 +0x30b
+cmd/compile/internal/gc.Main(0x1912d08)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/main.go:192 +0xb2e
+main.main()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/main.go:55 +0xdd
+</pre>
+
+<p>
+不得不吐槽一下 "cannot SetOp XXX on XXX" 实在是一句丑得不能再丑的错误信息。
+</p>
+
+<p>
+接下来我们考虑一段代码，涉及到一个会“膨胀”的类型 <code>ex3t</code> ：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">type</span> <span style="color: #ce537a; font-weight: bold;">ex3t</span><span style="color: #4f97d7;">[</span>T <span style="color: #ce537a; font-weight: bold;">any</span><span style="color: #4f97d7;">]</span> <span style="color: #4f97d7; font-weight: bold;">map</span><span style="color: #4f97d7;">[</span><span style="color: #ce537a; font-weight: bold;">int</span><span style="color: #4f97d7;">]</span><span style="color: #ce537a; font-weight: bold;">ex3t</span><span style="color: #4f97d7;">[</span>ex3t<span style="color: #bc6ec5;">[</span>T<span style="color: #bc6ec5;">]</span><span style="color: #4f97d7;">]</span>
+
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">ex3f</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">var</span> <span style="color: #7590db;">x</span> <span style="color: #ce537a; font-weight: bold;">ex3t</span><span style="color: #bc6ec5;">[</span>int<span style="color: #bc6ec5;">]</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">print out:</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">main.ex3t[ex3t[ex3t[int]]]</span>
+        fmt.<span style="color: #bc6ec5; font-weight: bold;">Printf</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"%T\n"</span>, x<span style="color: #2d9574;">[</span><span style="color: #a45bad;">1</span><span style="color: #2d9574;">][</span><span style="color: #a45bad;">2</span><span style="color: #2d9574;">][</span><span style="color: #a45bad;">3</span><span style="color: #2d9574;">][</span><span style="color: #a45bad;">4</span><span style="color: #2d9574;">][</span><span style="color: #a45bad;">5</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+代码成功编译-运行，看起来好像没什么问题。
+但是从输出结果来看这个类型应当是不正确的。
+</p>
+
+<p>
+让我们列个表来算算 <code>x</code> 、 <code>x[1]</code> 、 <code>x[1][2]</code> 、 <code>x[1][2][3]</code> 、 <code>x[1][2][3][4]</code> 、 <code>x[1][2][3][4][5]</code> 、… 的类型（注意下一行的 type 就是上一行 desugared type 去掉 <code>map[int]</code> 前缀）：
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">expr</th>
+<th scope="col" class="org-left">type</th>
+<th scope="col" class="org-left">desugared type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>x</code></td>
+<td class="org-left"><code>ex3t[T]</code></td>
+<td class="org-left"><code>map[int]ex3t[ex3t[T]]</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>x[1]</code></td>
+<td class="org-left"><code>ex3t[ex3t[T]]</code></td>
+<td class="org-left"><code>map[int]ex3t[ex3t[ex3t[T]]]</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>x[1][2]</code></td>
+<td class="org-left"><code>ex3t[ex3t[ex3t[T]]]</code></td>
+<td class="org-left"><code>map[int]ex3t[ex3t[ex3t[ex3t[T]]]]</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>x[1][2][3]</code></td>
+<td class="org-left"><code>ex3t[ex3t[ex3t[ex3t[T]]]]</code></td>
+<td class="org-left"><code>map[int]ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>x[1][2][3][4]</code></td>
+<td class="org-left"><code>ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]</code></td>
+<td class="org-left"><code>map[int]ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]]</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>x[1][2][3][4][5]</code></td>
+<td class="org-left"><code>ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]]</code></td>
+<td class="org-left"><code>map[int]ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]]]</code></td>
+</tr>
+
+<tr>
+<td class="org-left">&#x2026;</td>
+<td class="org-left">&#x2026;</td>
+<td class="org-left">&#x2026;</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+看起来经过 \(n\) 次 index 操作之后， <code>x[...]</code> 的类型应该是有 \(n + 1\) 重的 <code>ex3t</code> ，而在 <code>ex3f()</code> 中，无论再增加多少次 index 操作都还是 \(3\) 重 <code>ex3t</code> 。
+</p>
+
+<p>
+我们也可以换个思路来得出/验证这个结论：定义一个专用的 <code>ex4t</code> 并为之提供 <code>Index</code> 方法，使得类型为 <code>ex4t[T]</code> 的值经过 <code>Index</code> 可以得到类型为 <code>ex4t[ex4t[T]]</code> 的值。
+具体代码如下：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">type</span> <span style="color: #ce537a; font-weight: bold;">ex4t</span><span style="color: #4f97d7;">[</span>T <span style="color: #ce537a; font-weight: bold;">any</span><span style="color: #4f97d7;">]</span> <span style="color: #4f97d7; font-weight: bold;">struct</span><span style="color: #4f97d7;">{}</span>
+
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">ex4t</span><span style="color: #bc6ec5;">[</span>T<span style="color: #bc6ec5;">]</span><span style="color: #4f97d7;">)</span> <span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">int</span><span style="color: #4f97d7;">)</span> ex4t<span style="color: #4f97d7;">[</span>ex4t<span style="color: #bc6ec5;">[</span>T<span style="color: #bc6ec5;">]</span><span style="color: #4f97d7;">]</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">struct</span><span style="color: #bc6ec5;">{}{}</span>
+<span style="color: #4f97d7;">}</span>
+
+<span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">ex4f</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">var</span> <span style="color: #7590db;">x</span> <span style="color: #ce537a; font-weight: bold;">ex4t</span><span style="color: #bc6ec5;">[</span>int<span style="color: #bc6ec5;">]</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">print out:</span>
+        <span style="color: #2aa1ae; background-color: #292e34;">//      </span><span style="color: #2aa1ae; background-color: #292e34;">main.ex4t[ex4t[ex4t[ex4t[ex4t[ex4t[int]]]]]]</span>
+        fmt.<span style="color: #bc6ec5; font-weight: bold;">Printf</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"%T\n"</span>, x.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">1</span><span style="color: #2d9574;">)</span>.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">2</span><span style="color: #2d9574;">)</span>.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">3</span><span style="color: #2d9574;">)</span>.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">4</span><span style="color: #2d9574;">)</span>.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">5</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+可以看到同样经过 5 次 <code>Index</code> 操作后，得到的是符合预期的 <code>ex4t[ex4t[ex4t[ex4t[ex4t[ex4t[int]]]]]]</code> 。
+</p>
+
+<p>
+如果我们参照 <code>ex4t</code> 为 <code>ex3t</code> 添加同样类型的 <code>Index</code> 方法：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">ex3t</span><span style="color: #bc6ec5;">[</span>T<span style="color: #bc6ec5;">]</span><span style="color: #4f97d7;">)</span> <span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">int</span><span style="color: #4f97d7;">)</span> ex3t<span style="color: #4f97d7;">[</span>ex3t<span style="color: #bc6ec5;">[</span>T<span style="color: #bc6ec5;">]</span><span style="color: #4f97d7;">]</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #a45bad;">nil</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+仅仅是添加一个新方法还尚未修改 <code>ex3f</code> 时 Go compile 就已经会 panic 了：
+</p>
+
+<pre class="example">
+# test
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0xa0 pc=0x11a9202]
+
+goroutine 1 [running]:
+cmd/compile/internal/ir.(*Name).TypeDefn(0x18d9ba0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/name.go:146 +0x22
+cmd/compile/internal/types.findTypeLoop(0xc0000e0e00, 0xc0000977b8)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:239 +0x290
+cmd/compile/internal/types.reportTypeLoop(0xc0000e0e00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:277 +0x65
+cmd/compile/internal/types.CalcSize(0xc0000e0e00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:432 +0x68b
+cmd/compile/internal/types.calcStructOffset(0xc0000e2a10, 0xc0000e2bd0, 0x10, 0x8)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:157 +0xd3
+cmd/compile/internal/types.CalcSize(0xc00046fc00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:488 +0x917
+cmd/compile/internal/types.ResumeCheckSize()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:576 +0x4e
+cmd/compile/internal/types.CalcSize(0xc0000e2a10)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:515 +0xb14
+cmd/compile/internal/gc.prepareFunc(0xc0000fa840)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/compile.go:88 +0x39
+cmd/compile/internal/gc.enqueueFunc(0xc0000fa840)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/compile.go:66 +0x2f7
+cmd/compile/internal/gc.Main(0x1912d08)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/main.go:281 +0xe05
+main.main()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/main.go:55 +0xdd
+</pre>
+
+<p>
+将 <code>ex3f</code> 参照 <code>ex4f</code> 进行修改并重命名为 <code>ex3f2</code> ：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">ex3f2</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">var</span> <span style="color: #7590db;">x</span> <span style="color: #ce537a; font-weight: bold;">ex3t</span><span style="color: #bc6ec5;">[</span>int<span style="color: #bc6ec5;">]</span>
+        fmt.<span style="color: #bc6ec5; font-weight: bold;">Printf</span><span style="color: #bc6ec5;">(</span><span style="color: #2d9574;">"%T\n"</span>, x.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">1</span><span style="color: #2d9574;">)</span>.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">2</span><span style="color: #2d9574;">)</span>.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">3</span><span style="color: #2d9574;">)</span>.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">4</span><span style="color: #2d9574;">)</span>.<span style="color: #bc6ec5; font-weight: bold;">Index</span><span style="color: #2d9574;">(</span><span style="color: #a45bad;">5</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+又会碰到 Go compile 的另一个 panic ：
+</p>
+
+<pre class="example">
+# test
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0xa0 pc=0x11a9202]
+
+goroutine 1 [running]:
+cmd/compile/internal/ir.(*Name).TypeDefn(0x18d9ba0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/ir/name.go:146 +0x22
+cmd/compile/internal/types.findTypeLoop(0xc00007ee00, 0xc0004982b0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:239 +0x290
+cmd/compile/internal/types.reportTypeLoop(0xc00007ee00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:277 +0x65
+cmd/compile/internal/types.CalcSize(0xc00007ee00)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:432 +0x68b
+cmd/compile/internal/types.calcStructOffset(0xc000073180, 0xc000073340, 0x8, 0x8)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:157 +0xd3
+cmd/compile/internal/types.CalcSize(0xc0000733b0)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:488 +0x917
+cmd/compile/internal/types.ResumeCheckSize()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:576 +0x4e
+cmd/compile/internal/types.CalcSize(0xc000073180)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:515 +0xb14
+cmd/compile/internal/types.CheckSize(0xc000073180)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/types/size.go:555 +0x156
+cmd/compile/internal/noder.(*irgen).typ(0xc00007ec40, {0x1a33f28, 0xc000377aa0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/types.go:41 +0x7e
+cmd/compile/internal/noder.(*irgen).selectorExpr(0xc00031f0e0, {0x1a2fbe0, 0x0}, {0x1a33f28, 0xc000377aa0}, 0xc00039c480)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:285 +0xb45
+cmd/compile/internal/noder.(*irgen).expr0(0xc00031f0e0, {0x1a33f28, 0xc000377aa0}, {0x1a35898, 0xc00039c480})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:174 +0xa90
+cmd/compile/internal/noder.(*irgen).expr(0xc00031f0e0, {0x1a35898, 0xc00039c480})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:73 +0x58f
+cmd/compile/internal/noder.(*irgen).expr0(0xc00031f0e0, {0x1a33ed8, 0xc00031efc0}, {0x1a353b8, 0xc0003b22c0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:103 +0x119
+cmd/compile/internal/noder.(*irgen).expr(0xc00031f0e0, {0x1a353b8, 0xc0003b22c0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:73 +0x58f
+cmd/compile/internal/noder.(*irgen).exprs(0xc00031f0e0, {0xc0003b03e0, 0x2, 0x0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:329 +0x8e
+cmd/compile/internal/noder.(*irgen).expr0(0xc00031f0e0, {0x1a33fc8, 0xc0000b4750}, {0x1a353b8, 0xc0003b2180})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:129 +0xd6e
+cmd/compile/internal/noder.(*irgen).expr(0xc00031f0e0, {0x1a353b8, 0xc0003b2180})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/expr.go:73 +0x58f
+cmd/compile/internal/noder.(*irgen).stmt(0xc00031f0e0, {0x1a35538, 0xc0003b0400})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/stmt.go:38 +0x835
+cmd/compile/internal/noder.(*irgen).stmts(0xc00007e700, {0xc0003b0420, 0x2, 0x148})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/stmt.go:18 +0xaf
+cmd/compile/internal/noder.(*irgen).funcBody(0xc00031f0e0, 0xc0000fc420, 0x0, 0xc0003b2100, 0xc0003b2140)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/func.go:46 +0x25e
+cmd/compile/internal/noder.(*irgen).funcDecl(0xc00031f0e0, 0xc000499678, 0xc0003a2120)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/decl.go:98 +0x255
+cmd/compile/internal/noder.(*irgen).decls(0xc00031f0e0, {0xc0003b4010, 0x4, 0x203000})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/decl.go:28 +0x152
+cmd/compile/internal/noder.(*irgen).generate(0xc00031f0e0, {0xc00009e7e0, 0x2, 0xc0003a40d0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/irgen.go:160 +0x4bd
+cmd/compile/internal/noder.check2({0xc00009e7e0, 0x0, 0x2})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/irgen.go:78 +0x5da
+cmd/compile/internal/noder.LoadPackage({0xc0000c4110, 0x2, 0x0})
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/noder/noder.go:80 +0x30b
+cmd/compile/internal/gc.Main(0x1912d08)
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/internal/gc/main.go:192 +0xb2e
+main.main()
+	/usr/local/Cellar/go/1.17.2/libexec/src/cmd/compile/main.go:55 +0xdd
+</pre>
+
+<p>
+注意这两个 panic 虽然最终爆出的是同一行代码，但是执行路径（栈信息）是不同的。
+</p>
+
+<p>
+列举上面这些例子应当能够说明一定程度上泛型对 Go 而言并不容易实现。
+</p>
+
+<p>
+不过真正让笔者认为泛型支持对 Go 而言不容易实现的原因在于：泛型是一种相对复杂的类型演算（考虑一下 Curry-Howard correspondence ）；而 Go 的类型推演目前连相对简单的“记住” <code>struct</code> 的 field 的类型都做不到。
+比如对比一下填充 <code>map</code> 的 value 和 <code>struct</code> 的 field：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #7590db;">canBeOmitted</span> := <span style="color: #4f97d7; font-weight: bold;">map</span><span style="color: #4f97d7;">[</span><span style="color: #ce537a; font-weight: bold;">string</span><span style="color: #4f97d7;">]</span><span style="color: #ce537a; font-weight: bold;">bytes.Buffer</span><span style="color: #4f97d7;">{</span>
+        <span style="color: #2d9574;">"buf"</span>: <span style="color: #2aa1ae; background-color: #292e34;">/*</span><span style="color: #2aa1ae; background-color: #292e34;">bytes.Buffer*/</span><span style="color: #bc6ec5;">{}</span>,
+<span style="color: #4f97d7;">}</span>
+<span style="color: #7590db;">cannotBeOmmitted</span> := <span style="color: #4f97d7; font-weight: bold;">struct</span> <span style="color: #4f97d7;">{</span>
+        buf <span style="color: #ce537a; font-weight: bold;">bytes.Buffer</span>
+<span style="color: #4f97d7;">}{</span>
+        <span style="color: #a45bad;">buf</span>: <span style="color: #ce537a; font-weight: bold;">bytes.Buffer</span><span style="color: #bc6ec5;">{}</span>,
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+解决问题的顺序都是先易后难的吧？
+</p>
+</div>
+</body>
+</html>

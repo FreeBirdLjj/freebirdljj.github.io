@@ -1,4 +1,4 @@
-#+setupfile: common.org
+#+setupfile: dir-common.org
 #+title: Generics Are Not So Easy For Golang
 
 Go 1.17 带来了试验性的泛型支持。
@@ -119,7 +119,7 @@ func ex3f() {
 | =x[1][2][3][4][5]= | =ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]]= | =map[int]ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[ex3t[T]]]]]]]= |
 | ...                | ...                                     | ...                                                   |
 
-看起来经过 $n$ 次 index 操作之后， =x[...]= 的类型应该是有 $n + 1$ 重的 =ex3t= ，而在 =ex3f()= 的，无论再增加多少次 index 操作都还是 $3$ 重 =ex3t= 。
+看起来经过 $n$ 次 index 操作之后， =x[...]= 的类型应该是有 $n + 1$ 重的 =ex3t= ，而在 =ex3f()= 中，无论再增加多少次 index 操作都还是 $3$ 重 =ex3t= 。
 
 我们也可以换个思路来得出/验证这个结论：定义一个专用的 =ex4t= 并为之提供 =Index= 方法，使得类型为 =ex4t[T]= 的值经过 =Index= 可以得到类型为 =ex4t[ex4t[T]]= 的值。
 具体代码如下：

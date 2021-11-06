@@ -1,4 +1,4 @@
-#+setupfile: common.org
+#+setupfile: dir-common.org
 #+title: A Little Idea about Middleware
 
 在编写服务的 server 或者 client 时，我们都会用到中间件（ middleware ）。

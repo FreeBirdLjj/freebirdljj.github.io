@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2021-11-07 Sun 00:56 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Implement golang-like Interface in C++</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="FreeBirdLjj" />
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-99387301-1', 'auto');
+ga('send', 'pageview');
+</script>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" type="text/css" href="/assets/css/predefined.css" />
+<link rel="stylesheet" type="text/css" href="/assets/css/worg.css" />
+<script type="text/javascript">
+// @license magnet:?xt=urn:btih:1f739d935676111cfff4b4693e3816e664797050&amp;dn=gpl-3.0.txt GPL-v3-or-Later
+<!--/*--><![CDATA[/*><!--*/
+     function CodeHighlightOn(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.add("code-highlighted");
+         target.classList.add("code-highlighted");
+       }
+     }
+     function CodeHighlightOff(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.classList.remove("code-highlighted");
+         target.classList.remove("code-highlighted");
+       }
+     }
+    /*]]>*///-->
+// @license-end
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="https://freebirdljj.github.io"> UP </a>
+ |
+ <a accesskey="H" href="https://freebirdljj.github.io"> HOME </a>
+</div><div id="content">
+<h1 class="title">Implement golang-like Interface in C++</h1>
+<p>
+golang 的接口是 "duck-typing" 的，不需要显式声明实现某一接口，只需要实现接口中的方法就可以了。
+</p>
+
+<p>
+我们在 C++ 中的任务就是模拟 golang 的这个接口机制。
+我举一个具体的例子：我们现在有一个 <code>closer</code> 接口和一个 <code>finalize()</code> 函数，然后我们希望对于任何一个实现了 <code>void close()</code> 函数的类都能够通过一个 wrapper 传给 <code>finalize()</code> 作为参数。
+</p>
+
+<p>
+<code>closer</code> 和 <code>finalize()</code> 的定义如下：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">closer</span>
+<span style="color: #4f97d7;">{</span>
+<span style="color: #4f97d7; font-weight: bold;">public</span>:
+        <span style="color: #4f97d7; font-weight: bold;">virtual</span> <span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">close</span><span style="color: #bc6ec5;">()</span> = <span style="color: #a45bad;">0</span>;
+<span style="color: #4f97d7;">}</span>;
+
+<span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">finalize</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">closer</span> * <span style="color: #7590db;">c</span><span style="color: #4f97d7;">)</span>
+<span style="color: #4f97d7;">{</span>
+        c-&gt;close<span style="color: #bc6ec5;">()</span>;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+另外我们有一个 <code>my_class</code> 实现了一个 <code>close()</code> 方法，但并未显式继承 <code>closer</code> 接口：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">my_class</span>
+<span style="color: #4f97d7;">{</span>
+<span style="color: #4f97d7; font-weight: bold;">public</span>:
+        <span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">close</span><span style="color: #bc6ec5;">()</span>
+        <span style="color: #bc6ec5;">{</span>
+                <span style="color: #a45bad;">std</span>::cout &lt;&lt; <span style="color: #2d9574;">"myclass::close()"</span> &lt;&lt; <span style="color: #a45bad;">std</span>::endl;
+        <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>;
+</pre>
+</div>
+
+<p>
+接下来就是我们的 wrapper 了。
+这个 wrapper 就叫 <code>implement()</code> 好了，最简单的用例是这样的：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">example</span><span style="color: #4f97d7;">()</span>
+<span style="color: #4f97d7;">{</span>
+        <span style="color: #ce537a; font-weight: bold;">my_class</span> <span style="color: #7590db;">mc</span>;
+        finalize<span style="color: #bc6ec5;">(</span>implement<span style="color: #2d9574;">(</span>mc<span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span>;        <span style="color: #2aa1ae; background-color: #292e34;">// </span><span style="color: #2aa1ae; background-color: #292e34;">should print out "myclass::close()".</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+要实现“按名调用”，当然得用到 template 了（所以其实顺着这个思路也可以在 C 中用宏实现）。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-cpp"><span style="color: #4f97d7; font-weight: bold;">template</span><span style="color: #4f97d7;">&lt;</span><span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">intf</span>, <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">impl</span><span style="color: #4f97d7;">&gt;</span>
+<span style="color: #ce537a; font-weight: bold;">intf</span> * <span style="color: #bc6ec5; font-weight: bold;">implement</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">impl</span> &amp;<span style="color: #7590db;">x</span><span style="color: #4f97d7;">)</span>;
+
+<span style="color: #4f97d7; font-weight: bold;">template</span><span style="color: #4f97d7;">&lt;</span><span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">impl</span><span style="color: #4f97d7;">&gt;</span>
+<span style="color: #ce537a; font-weight: bold;">closer</span> * <span style="color: #bc6ec5; font-weight: bold;">implement</span><span style="color: #4f97d7;">(</span><span style="color: #ce537a; font-weight: bold;">impl</span> &amp;<span style="color: #7590db;">x</span><span style="color: #4f97d7;">)</span>
+<span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">closer_impl</span> : <span style="color: #4f97d7; font-weight: bold;">public</span> <span style="color: #ce537a; font-weight: bold;">closer</span>
+        <span style="color: #bc6ec5;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">private</span>:
+                <span style="color: #ce537a; font-weight: bold;">impl</span> &amp;<span style="color: #7590db;">p_</span>;
+        <span style="color: #4f97d7; font-weight: bold;">public</span>:
+                <span style="color: #bc6ec5; font-weight: bold;">closer_impl</span><span style="color: #2d9574;">(</span><span style="color: #ce537a; font-weight: bold;">impl</span> &amp;<span style="color: #7590db;">p</span><span style="color: #2d9574;">)</span> : p_<span style="color: #2d9574;">(</span>p<span style="color: #2d9574;">)</span> <span style="color: #2d9574;">{}</span>
+                <span style="color: #4f97d7; font-weight: bold;">virtual</span> <span style="color: #ce537a; font-weight: bold;">void</span> <span style="color: #bc6ec5; font-weight: bold;">close</span><span style="color: #2d9574;">()</span> <span style="color: #2d9574;">{</span> p_.close<span style="color: #67b11d;">()</span>; <span style="color: #2d9574;">}</span>
+        <span style="color: #bc6ec5;">}</span>;
+        <span style="color: #4f97d7; font-weight: bold;">return</span> <span style="color: #4f97d7; font-weight: bold;">new</span> <span style="color: #ce537a; font-weight: bold;">closer_impl</span><span style="color: #bc6ec5;">(</span>x<span style="color: #bc6ec5;">)</span>;
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+这里简单实现表现个思路，没有写出非引用的其它版本，也没有处理生命周期（所以这个函数的返回值只在原来传入值析构前有效）。
+不过希望达到的效果还是达到了。
+</p>
+
+
+<p>
+思考这个问题并不意味着我们要在 C++ 里像 golang 那样写，也不意味着 golang 的写法比 C++ 的更好（更简单或更优雅）。
+事实上我个人对这两种说法都持否定的意见。
+意义在于：如果我们能够对任何两个编程语言都能互相实现其特性，那么我们的编程技巧就不会囿于编程语言；另外用两种语言实现同一语言特性（虽然可能对于其中一个是原生的）也有助于我们看清这一特性的本质和更好地对比两门语言。
+</p>
+</div>
+</body>
+</html>
