@@ -3,19 +3,19 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-11-07 Sun 01:31 -->
+<!-- 2022-09-29 Thu 22:48 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Type Recursion in Golang</title>
-<meta name="generator" content="Org mode" />
 <meta name="author" content="FreeBirdLjj" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N01DB4NLDS"></script>
 <script>
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-ga('create', 'UA-99387301-1', 'auto');
-ga('send', 'pageview');
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N01DB4NLDS');
 </script>
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -23,28 +23,6 @@ ga('send', 'pageview');
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" type="text/css" href="/assets/css/predefined.css" />
 <link rel="stylesheet" type="text/css" href="/assets/css/worg.css" />
-<script type="text/javascript">
-// @license magnet:?xt=urn:btih:1f739d935676111cfff4b4693e3816e664797050&amp;dn=gpl-3.0.txt GPL-v3-or-Later
-<!--/*--><![CDATA[/*><!--*/
-     function CodeHighlightOn(elem, id)
-     {
-       var target = document.getElementById(id);
-       if(null != target) {
-         elem.classList.add("code-highlighted");
-         target.classList.add("code-highlighted");
-       }
-     }
-     function CodeHighlightOff(elem, id)
-     {
-       var target = document.getElementById(id);
-       if(null != target) {
-         elem.classList.remove("code-highlighted");
-         target.classList.remove("code-highlighted");
-       }
-     }
-    /*]]>*///-->
-// @license-end
-</script>
 <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
         displayAlign: "center",
@@ -65,15 +43,14 @@ ga('send', 'pageview');
              }
 });
 </script>
-<script type="text/javascript"
-        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
 </head>
 <body>
 <div id="org-div-home-and-up">
  <a accesskey="h" href="https://freebirdljj.github.io"> UP </a>
  |
  <a accesskey="H" href="https://freebirdljj.github.io"> HOME </a>
-</div><div id="content">
+</div><div id="content" class="content">
 <h1 class="title">Type Recursion in Golang</h1>
 <p>
 <i>注：本文最早是很久以前发布在公司的技术公众号上的，后来在 Go 夜读的第 98 期（<span class="timestamp-wrapper"><span class="timestamp">&lt;2020-07-30 Thu&gt;</span></span>）也讲过，现在搬运回我自己的博客。</i>
@@ -89,24 +66,24 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 例如原本一些我们可能需要定义为 <code>struct</code> 的类型，现在我们使用一些递归的类型来实现，这样就可以借助特定类型的语法糖。
 </p>
 
-<div id="table-of-contents">
+<div id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
-<div id="text-table-of-contents">
+<div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org0e02ba3">字典树</a></li>
-<li><a href="#orge9faf23">状态机</a></li>
-<li><a href="#org2fd253a">栈</a></li>
-<li><a href="#org2d1c427">指针</a></li>
-<li><a href="#org3e3453f">“好括号列”数组</a></li>
-<li><a href="#org99cd4b2">Y Combinator</a></li>
-<li><a href="#org2299a8c">邱奇数</a></li>
+<li><a href="#org9724ed1">字典树</a></li>
+<li><a href="#org27d17de">状态机</a></li>
+<li><a href="#org5e68453">栈</a></li>
+<li><a href="#org55f8340">指针</a></li>
+<li><a href="#orgc530630">“好括号列”数组</a></li>
+<li><a href="#orga1e96a4">Y Combinator</a></li>
+<li><a href="#org05da76e">邱奇数</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org0e02ba3" class="outline-2">
-<h2 id="org0e02ba3">字典树</h2>
-<div class="outline-text-2" id="text-org0e02ba3">
+<div id="outline-container-org9724ed1" class="outline-2">
+<h2 id="org9724ed1">字典树</h2>
+<div class="outline-text-2" id="text-org9724ed1">
 <p>
 大家对字典树应该都不陌生，通常会选用一个 <code>struct</code> 来实现，不过这里我们利用递归定义的 <code>map</code> 类型来更方便地来定义 <code>Trie</code> 。
 </p>
@@ -193,9 +170,9 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 </div>
 </div>
 
-<div id="outline-container-orge9faf23" class="outline-2">
-<h2 id="orge9faf23">状态机</h2>
-<div class="outline-text-2" id="text-orge9faf23">
+<div id="outline-container-org27d17de" class="outline-2">
+<h2 id="org27d17de">状态机</h2>
+<div class="outline-text-2" id="text-org27d17de">
 <p>
 既然都能够实现字典“树”了，只要我们减少对边的约束，我们就能将“树”改成“图”。
 </p>
@@ -253,7 +230,7 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 </p>
 
 
-<div id="orgc5b6a16" class="figure">
+<div id="org65213fa" class="figure">
 <p><img src="../assets/images/regexp_abc.png" alt="regexp_abc.png" width="80%" />
 </p>
 </div>
@@ -288,9 +265,9 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 </div>
 </div>
 
-<div id="outline-container-org2fd253a" class="outline-2">
-<h2 id="org2fd253a">栈</h2>
-<div class="outline-text-2" id="text-org2fd253a">
+<div id="outline-container-org5e68453" class="outline-2">
+<h2 id="org5e68453">栈</h2>
+<div class="outline-text-2" id="text-org5e68453">
 <p>
 函数式编程里面有个技巧是用闭包实现栈：通过压栈操作构造新的闭包；直接调用闭包就是获取栈顶或者弹栈操作。
 </p>
@@ -349,9 +326,9 @@ Go 的类型系统目前虽然不支持泛型，但却支持类型定义时使�
 </div>
 </div>
 
-<div id="outline-container-org2d1c427" class="outline-2">
-<h2 id="org2d1c427">指针</h2>
-<div class="outline-text-2" id="text-org2d1c427">
+<div id="outline-container-org55f8340" class="outline-2">
+<h2 id="org55f8340">指针</h2>
+<div class="outline-text-2" id="text-org55f8340">
 <div class="org-src-container">
 <pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">type</span> <span style="color: #ce537a; font-weight: bold;">Pointer</span> *<span style="color: #ce537a; font-weight: bold;">Pointer</span>
 </pre>
@@ -414,9 +391,9 @@ p = &amp;p
 </div>
 </div>
 
-<div id="outline-container-org3e3453f" class="outline-2">
-<h2 id="org3e3453f">“好括号列”数组</h2>
-<div class="outline-text-2" id="text-org3e3453f">
+<div id="outline-container-orgc530630" class="outline-2">
+<h2 id="orgc530630">“好括号列”数组</h2>
+<div class="outline-text-2" id="text-orgc530630">
 <p>
 “好括号列”是指：仅由相同数目的左右括号数构成的序列且从前向后遍历时任意一步已遍历的右括号都不多于已遍历的左括号。
 </p>
@@ -450,9 +427,9 @@ p = &amp;p
 </div>
 </div>
 
-<div id="outline-container-org99cd4b2" class="outline-2">
-<h2 id="org99cd4b2">Y Combinator</h2>
-<div class="outline-text-2" id="text-org99cd4b2">
+<div id="outline-container-orga1e96a4" class="outline-2">
+<h2 id="orga1e96a4">Y Combinator</h2>
+<div class="outline-text-2" id="text-orga1e96a4">
 <p>
 在 λ 演算里有个很经典的 Y combinator 问题，简单来说：如何在仅使用匿名函数调用（因而无法直接递归）的限制条件下实现递归的逻辑。
 </p>
@@ -504,9 +481,9 @@ p = &amp;p
 </div>
 </div>
 
-<div id="outline-container-org2299a8c" class="outline-2">
-<h2 id="org2299a8c">邱奇数</h2>
-<div class="outline-text-2" id="text-org2299a8c">
+<div id="outline-container-org05da76e" class="outline-2">
+<h2 id="org05da76e">邱奇数</h2>
+<div class="outline-text-2" id="text-org05da76e">
 <p>
 另一个 λ 演算的经典问题是邱奇数，简单说来就是：给定一个类型为 <code>func(X) X</code> 的函数 <code>f</code> 和一个类型为 <code>X</code> 的值 <code>x</code> ，那么就用 <code>x</code> 来表示自然数 \(0\) 、 <code>f(x)</code> 来表示自然数 \(1\) 、 <code>f(f(x))</code> 来表示自然数 \(2\) 、…，也就是用 \(n\) 重 <code>f</code> 复合作用在 <code>x</code> 上的结果作为自然数 \(n\) 的编码。
 </p>
