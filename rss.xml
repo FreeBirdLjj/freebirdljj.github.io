@@ -14,9 +14,9 @@
   <link>https://freebirdljj.github.io</link>
   <description><![CDATA[]]></description>
   <language>en</language>
-  <pubDate>Sun, 07 Nov 2021 00:37:43 +0800</pubDate>
-  <lastBuildDate>Sun, 07 Nov 2021 00:37:43 +0800</lastBuildDate>
-  <generator>Emacs 27.2 Org-mode 9.4.6</generator>
+  <pubDate>Thu, 29 Sep 2022 22:14:49 +0800</pubDate>
+  <lastBuildDate>Thu, 29 Sep 2022 22:14:49 +0800</lastBuildDate>
+  <generator>Emacs 28.2 Org-mode 9.5.5</generator>
   <webMaster>freebirdljj@gmail.com (FreeBirdLjj)</webMaster>
   <image>
     <url>https://avatars.githubusercontent.com/FreeBirdLjj</url>
@@ -25,6 +25,15 @@
   </image>
 
 
+  <item>
+    <title>Tips For Working From Home</title>
+    <link>https://freebirdljj.github.io/posts/Tips For Working From Home.html</link>
+    <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/Tips For Working From Home.html</guid>
+    <pubDate>Thu, 29 Sep 2022 22:14:00 +0800</pubDate>
+
+    <description><![CDATA[]]></description>
+  </item>
   <item>
     <title>Generics Are Not So Easy For Golang</title>
     <link>https://freebirdljj.github.io/posts/Generics Are Not So Easy For Golang.html</link>

@@ -1,6 +1,13 @@
 #+setupfile: dir-common.org
 #+title: FreeBirdLjj's blog
 
+* [[file:posts/Tips For Working From Home.org][Tips For Working From Home]]
+  :PROPERTIES:
+  :ID:            2AD35FFB-DBC8-43AE-AB76-BAEE05A8E17F
+  :PUBDATE:       <2022-09-29 Thu 22:14>
+  :RSS_TITLE:     Tips For Working From Home
+  :RSS_PERMALINK: posts/Tips For Working From Home.html
+  :END:
 * [[file:posts/Generics Are Not So Easy For Golang.org][Generics Are Not So Easy For Golang]]
   :PROPERTIES:
   :ID:            B421DE8B-A077-40C7-B9BF-9A3544563390
