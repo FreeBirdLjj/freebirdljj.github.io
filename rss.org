@@ -1,4 +1,5 @@
 #+setupfile: dir-common.org
+#+rss_image_url: https://avatars.githubusercontent.com/FreeBirdLjj
 #+title: FreeBirdLjj's blog
 
 * [[file:posts/Tips For Working From Home.org][Tips For Working From Home]]

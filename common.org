@@ -28,5 +28,3 @@
 
 #+html_head: <link rel="stylesheet" type="text/css" href="/assets/css/predefined.css" />
 #+html_head: <link rel="stylesheet" type="text/css" href="/assets/css/worg.css" />
-
-#+rss_image_url: https://avatars.githubusercontent.com/FreeBirdLjj
