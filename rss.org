@@ -2,6 +2,13 @@
 #+rss_image_url: https://avatars.githubusercontent.com/FreeBirdLjj
 #+title: FreeBirdLjj's blog
 
+* [[file:posts/Syntax Highlight vs Style.org][Syntax Highlight vs Style]]
+  :PROPERTIES:
+  :ID:            C4A6F52D-3768-433B-9088-A9DEFD932915
+  :PUBDATE:       <2024-05-12 Sun 09:22>
+  :RSS_TITLE:     Syntax Highlight vs Style
+  :RSS_PERMALINK: posts/Syntax Highlight vs Style.html
+  :END:
 * [[file:posts/Tips For Working From Home.org][Tips For Working From Home]]
   :PROPERTIES:
   :ID:            2AD35FFB-DBC8-43AE-AB76-BAEE05A8E17F

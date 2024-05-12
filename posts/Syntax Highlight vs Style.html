@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2024-05-12 Sun 21:54 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Syntax Highlight vs Style</title>
+<meta name="author" content="FreeBirdLjj" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N01DB4NLDS"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N01DB4NLDS');
+</script>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" type="text/css" href="/assets/css/predefined.css" />
+<link rel="stylesheet" type="text/css" href="/assets/css/worg.css" />
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="https://freebirdljj.github.io"> UP </a>
+ |
+ <a accesskey="H" href="https://freebirdljj.github.io"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title">Syntax Highlight vs Style</h1>
+<p>
+很多时候“语法高亮 (syntax highlight) ”和“风格 (style) ”这两个概念会互相模糊起来，不过这两者还是有些不同的。
+</p>
+
+<p>
+例如在编辑 Markdown 文档的时候，我们通常认为自己在编辑文本的风格，但是其实 Markdown 编辑器或者在线预览 (live preview) 展示的反而是一种语法高亮。
+Markdown 由于允许像 <b><i>加粗且倾斜</i></b> 这样的嵌套的语法，而且这点经常被主动用到，反而容易让人认为是在调整风格。
+但是一旦和真正的风格调整（例如允许指定字号或者颜色甚至方向）进行对比，就很容易发现 Markdown 其实是提供了一些语法元素并且在预览或者导出到 HTML/pdf 时恰这些元素在所有的 theme 中都有着固定的特点（比如下划线括住的内容都会倾斜）。
+市面上有些 Markdown 编辑器提供内嵌 HTML 代码的功能来允许用户设置风格，但这已经显然离开了 Markdown 而进入到了 HTML 的讨论范畴了。
+</p>
+
+<p>
+通常语法高亮有个不太正确的刻板印象：语法高亮应当是固定的。
+这是说对于同一个语法元素有着固定的展示方式，比如像 <code>if</code> 这样的关键字不论在什么地方出现，都应当以某个固定不变的颜色展示。
+但这其实并不是一个事实上的硬性限制。
+一个例子是像 Scheme 这样的编程语言，小括号作为一个最为重要的语法元素可以有着可以称得上是五彩斑斓的色彩展示：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-scheme"><span style="color: #4f97d7;">(</span><span style="color: #4f97d7; font-weight: bold;">define</span> <span style="color: #bc6ec5;">(</span><span style="color: #bc6ec5; font-weight: bold;">f</span> x<span style="color: #bc6ec5;">)</span> <span style="color: #bc6ec5;">(</span>+ <span style="color: #a45bad;">1</span> <span style="color: #2d9574;">(</span>* <span style="color: #a45bad;">2</span> <span style="color: #67b11d;">(</span>- x <span style="color: #a45bad;">3</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span><span style="color: #bc6ec5;">)</span><span style="color: #4f97d7;">)</span>
+</pre>
+</div>
+
+<p>
+回到 Markdown 或者说 Markdown language 上，和通常的编程语言相比，嵌套的语法元素有着嵌套的属性这点确实是个不同点。
+比如下面这段 Go 代码：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">f</span><span style="color: #4f97d7;">()</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #4f97d7; font-weight: bold;">for</span> <span style="color: #bc6ec5;">{</span>
+        <span style="color: #bc6ec5;">}</span>
+
+        <span style="color: #4f97d7; font-weight: bold;">if</span> <span style="color: #a45bad;">true</span> <span style="color: #bc6ec5;">{</span>
+                <span style="color: #4f97d7; font-weight: bold;">for</span> <span style="color: #2d9574;">{</span>
+                <span style="color: #2d9574;">}</span>
+        <span style="color: #bc6ec5;">}</span>
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+上面这段 Go 代码， 函数 <code>f()</code> 中的第一个 <code>for</code> 语句和第二个 <code>for</code> 语句展示时并无不同，第二个 <code>for</code> 语句不会因为是嵌套在另一个 <code>if</code> 语句中就有所特殊。
+正是因为这种现象太过常见，从而让我们容易产生之前提到的“语法高亮应当是固定的”刻板印象。
+但不管怎么说 Markdown 都是结构化的语言，是先有的语法后才有的高亮。
+</p>
+
+<p>
+总的来说：“风格”更为自由，任何一个元素都可以在所有的展示维度（字号、颜色、方向等）上有着完全的自由度。
+而“语法高亮”，虽然也可以有着丰富展示方式，却正如其名，是为语法服务的，所以看到语法结构才出现的“高亮”，无论多么炫酷，也能一眼辨别是语法高亮。
+</p>
+</div>
+</body>
+</html>
