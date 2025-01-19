@@ -1,0 +1,47 @@
+#+setupfile: dir-common.org
+#+title: How To Add Proxy Support To An Existing Service (In Docker Compose)
+
+有的服务本身没有支持代理，我们在需要的时候应当怎么（在使用时）为它们添加代理呢？
+这并不是一个完全假设的情况，例如 [[https://github.com/home-assistant/core/issues/36788][Home Assistant 就是个例子]]。
+这里我们的讨论当然把服务作为黑盒考虑，不然相当于改变了问题的前提。
+
+通常我们能想到的做法是在 OS 层面比如 iptables 或者在网络层面比如路由器上配置相应的流量规则，但是这些做法都比较“靠外”，影响范围较大也有较高的权限要求。
+如果这个服务是部署在一个 Docker Compose 中的，那我们其实有更简单轻量的做法：在这个 Docker Comopse 中添加 [[https://github.com/FreeBirdLjj/dcdn][dcdn]] 服务并使其承接本来的这个服务的特定流量。
+具体来说就是在原来的 =compose.yaml= 文件中加入如下的改动（假定 =app= 就是本来的服务）：
+
+#+BEGIN_SRC yaml
+services:
+  dcdn:
+    image: ghcr.io/freebirdljj/dcdn:latest
+    environment:
+      - all_proxy=${ALL_PROXY}
+    expose:
+      - "80"
+      - "443"
+
+  app:
+    ...
+    links:
+      - dcdn:domain1
+      - dcdn:domain2
+      ...
+#+END_SRC
+
+这里的 =domain1=, =domain2= 等就是具体的域名，比如 =github.com= 。
+
+我们先来解释一下比如某个域名 =domain1= 在这个新的 Docker Compose 里 =app= 服务是怎么请求的：
+首先对于 =app= 服务而言 =domain1= 在 =links= 中， 所以虽然我们知道 =domain1= 在公网上是有一个具体的服务器的，但是 =app= 服务仍然会在 Docker Compose 的指引下找到 =dcdn= 服务并认为后者就是 =domain1= 的服务器。
+这样这个原始的请求就被很自然地发送给了 =dcdn= 服务。
+并且由于对于 =app= 服务而言 =domain1= 的 DNS 解析结果是 Docker Compose 给出的，所以和公网上的 =domain1= 的 DNS 解析结果没有任何关系，也不会有 ESNI 或 ECH 等事了，这就让 =dcdn= 得以嗅探出 HTTP/HTTPS 请求的目标。
+对于 HTTP 请求，目标地址可以通过读取请求的 =Host= header 获取；而对于 HTTPS 请求，目标地址可以通过读取 TLS ClientHello 消息的 =ServerName= 获取。
+=dcdn= 一旦嗅探出了目标地址，就会将整个连接进行转发，后面的事就自然而然了。
+需要注意的是 =app= 服务的 =links= 只会影响 =app= 服务本身，而不会影响 =dcdn= 对 =domain1=, =domain2= 等地址的解析和请求的。
+
+简单来说就是在这个 Docker Compose 中 =app= 服务误以为 =dcdn= 就是它要访问的 =domain1=, =domain2= 等域名的服务器并且其 TLS 支持不带服务端匿名性。
+=dcdn= 收到请求后会进行嗅探并进行连接级别的转发，这里虽然 =dcdn= 转发的请求仍然缺失 ESNI/ECH 等特性，但有理由相信 =$ALL_PROXY= 指向的代理应当能够很大程度缓解这一问题。
+
+有两点值得提一下：
+1. 可以直接用一个 HTTP 代理取代 =dcdn= 么？
+   这是不行的，因为一个 HTTP 请求如果要被代理，本身需要进行一定的修改，反过来说原始的请求 HTTP 代理则无法正确直接处理（不然请求也不用修改了）。
+2. 为什么 =dcdn= 是在连接层面进行转发而不是在请求层面？
+   主要是因为对于 HTTPS 请求所基于的 TLS 连接是必须整体进行转发的。

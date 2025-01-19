@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-01-19 Sun 12:25 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How To Add Proxy Support To An Existing Service (In Docker Compose)</title>
+<meta name="author" content="FreeBirdLjj" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N01DB4NLDS"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N01DB4NLDS');
+</script>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" type="text/css" href="/assets/css/predefined.css" />
+<link rel="stylesheet" type="text/css" href="/assets/css/worg.css" />
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="https://freebirdljj.github.io"> UP </a>
+ |
+ <a accesskey="H" href="https://freebirdljj.github.io"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title">How To Add Proxy Support To An Existing Service (In Docker Compose)</h1>
+<p>
+有的服务本身没有支持代理，我们在需要的时候应当怎么（在使用时）为它们添加代理呢？
+这并不是一个完全假设的情况，例如 <a href="https://github.com/home-assistant/core/issues/36788">Home Assistant 就是个例子</a>。
+这里我们的讨论当然把服务作为黑盒考虑，不然相当于改变了问题的前提。
+</p>
+
+<p>
+通常我们能想到的做法是在 OS 层面比如 iptables 或者在网络层面比如路由器上配置相应的流量规则，但是这些做法都比较“靠外”，影响范围较大也有较高的权限要求。
+如果这个服务是部署在一个 Docker Compose 中的，那我们其实有更简单轻量的做法：在这个 Docker Comopse 中添加 <a href="https://github.com/FreeBirdLjj/dcdn">dcdn</a> 服务并使其承接本来的这个服务的特定流量。
+具体来说就是在原来的 <code>compose.yaml</code> 文件中加入如下的改动（假定 <code>app</code> 就是本来的服务）：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #7590db;">services</span>:
+  <span style="color: #7590db;">dcdn</span>:
+    <span style="color: #7590db;">image</span>: ghcr.io/freebirdljj/dcdn:latest
+    <span style="color: #7590db;">environment</span>:
+      - all_proxy=${ALL_PROXY}
+    <span style="color: #7590db;">expose</span>:
+      - <span style="color: #2d9574;">"80"</span>
+      - <span style="color: #2d9574;">"443"</span>
+
+  <span style="color: #7590db;">app</span>:
+    ...
+    <span style="color: #7590db;">links</span>:
+      - dcdn:domain1
+      - dcdn:domain2
+      ...
+</pre>
+</div>
+
+<p>
+这里的 <code>domain1</code>, <code>domain2</code> 等就是具体的域名，比如 <code>github.com</code> 。
+</p>
+
+<p>
+我们先来解释一下比如某个域名 <code>domain1</code> 在这个新的 Docker Compose 里 <code>app</code> 服务是怎么请求的：
+首先对于 <code>app</code> 服务而言 <code>domain1</code> 在 <code>links</code> 中， 所以虽然我们知道 <code>domain1</code> 在公网上是有一个具体的服务器的，但是 <code>app</code> 服务仍然会在 Docker Compose 的指引下找到 <code>dcdn</code> 服务并认为后者就是 <code>domain1</code> 的服务器。
+这样这个原始的请求就被很自然地发送给了 <code>dcdn</code> 服务。
+并且由于对于 <code>app</code> 服务而言 <code>domain1</code> 的 DNS 解析结果是 Docker Compose 给出的，所以和公网上的 <code>domain1</code> 的 DNS 解析结果没有任何关系，也不会有 ESNI 或 ECH 等事了，这就让 <code>dcdn</code> 得以嗅探出 HTTP/HTTPS 请求的目标。
+对于 HTTP 请求，目标地址可以通过读取请求的 <code>Host</code> header 获取；而对于 HTTPS 请求，目标地址可以通过读取 TLS ClientHello 消息的 <code>ServerName</code> 获取。
+<code>dcdn</code> 一旦嗅探出了目标地址，就会将整个连接进行转发，后面的事就自然而然了。
+需要注意的是 <code>app</code> 服务的 <code>links</code> 只会影响 <code>app</code> 服务本身，而不会影响 <code>dcdn</code> 对 <code>domain1</code>, <code>domain2</code> 等地址的解析和请求的。
+</p>
+
+<p>
+简单来说就是在这个 Docker Compose 中 <code>app</code> 服务误以为 <code>dcdn</code> 就是它要访问的 <code>domain1</code>, <code>domain2</code> 等域名的服务器并且其 TLS 支持不带服务端匿名性。
+<code>dcdn</code> 收到请求后会进行嗅探并进行连接级别的转发，这里虽然 <code>dcdn</code> 转发的请求仍然缺失 ESNI/ECH 等特性，但有理由相信 <code>$ALL_PROXY</code> 指向的代理应当能够很大程度缓解这一问题。
+</p>
+
+<p>
+有两点值得提一下：
+</p>
+<ol class="org-ol">
+<li>可以直接用一个 HTTP 代理取代 <code>dcdn</code> 么？
+这是不行的，因为一个 HTTP 请求如果要被代理，本身需要进行一定的修改，反过来说原始的请求 HTTP 代理则无法正确直接处理（不然请求也不用修改了）。</li>
+<li>为什么 <code>dcdn</code> 是在连接层面进行转发而不是在请求层面？
+主要是因为对于 HTTPS 请求所基于的 TLS 连接是必须整体进行转发的。</li>
+</ol>
+</div>
+</body>
+</html>
