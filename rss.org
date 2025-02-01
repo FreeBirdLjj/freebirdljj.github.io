@@ -2,6 +2,14 @@
 #+rss_image_url: https://avatars.githubusercontent.com/FreeBirdLjj
 #+title: FreeBirdLjj's blog
 
+* [[file:posts/How To Replicate A Reader In Go.org][How To Replicate A Reader In Go]]
+  :PROPERTIES:
+  :ID:            6AC7E150-99D3-429D-A99A-FD5845A57990
+  :CUSTOM_ID:     org063c8aa
+  :PUBDATE:       <2025-02-01 Sat 14:52>
+  :RSS_TITLE:     How To Replicate A Reader In Go
+  :RSS_PERMALINK: posts/How To Replicate A Reader In Go.org
+  :END:
 * [[file:posts/How To Add Proxy Support To An Existing Service (In Docker Compose).org][How To Add Proxy Support To An Existing Service (In Docker Compose)]]
   :PROPERTIES:
   :ID:            A2DAB8A1-8D67-40E7-912A-109BC2C0E238

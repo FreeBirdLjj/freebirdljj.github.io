@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-02-01 Sat 14:48 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How To Replicate A Reader In Go</title>
+<meta name="author" content="FreeBirdLjj" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N01DB4NLDS"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N01DB4NLDS');
+</script>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" type="text/css" href="/assets/css/predefined.css" />
+<link rel="stylesheet" type="text/css" href="/assets/css/worg.css" />
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="https://freebirdljj.github.io"> UP </a>
+ |
+ <a accesskey="H" href="https://freebirdljj.github.io"> HOME </a>
+</div><div id="content" class="content">
+<h1 class="title">How To Replicate A Reader In Go</h1>
+<p>
+在使用 Go 编程时，有时我们会需要多次消费某个 <code>io.Reader</code> 的内容（注意：是同一内容读取多次，而不同于通常的多次分段读取），这就需要我们可以“复制”一个 <code>io.Reader</code> 。
+而且某些场景下不太方便将 <code>io.Reader</code> 内容一次性读出，比如将 <code>net.Conn</code> 视为 <code>io.Reader</code> 使用或读取超大文件无法全部加载到内存等情形。
+所以在这里我们还是讨论 <code>io.Reader</code> 本身的复制。
+</p>
+
+<p>
+对于最简单的消费两次的场景，网上最常见的推荐的写法基本是这样的：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span style="color: #4f97d7; font-weight: bold;">func</span> <span style="color: #bc6ec5; font-weight: bold;">ReplicateReader</span><span style="color: #4f97d7;">(</span><span style="color: #7590db;">r</span> <span style="color: #ce537a; font-weight: bold;">io.Reader</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">(</span><span style="color: #7590db;">r1</span> <span style="color: #ce537a; font-weight: bold;">io.Reader</span>, <span style="color: #7590db;">r2</span> <span style="color: #ce537a; font-weight: bold;">io.Reader</span><span style="color: #4f97d7;">)</span> <span style="color: #4f97d7;">{</span>
+        <span style="color: #7590db;">buf</span> := <span style="color: #ce537a; font-weight: bold;">bytes.Buffer</span><span style="color: #bc6ec5;">{}</span>
+        <span style="color: #7590db;">teeR</span> := io.<span style="color: #bc6ec5; font-weight: bold;">TeeReader</span><span style="color: #bc6ec5;">(</span>r, &amp;buf<span style="color: #bc6ec5;">)</span>
+        <span style="color: #4f97d7; font-weight: bold;">return</span> teeR, &amp;buf
+<span style="color: #4f97d7;">}</span>
+</pre>
+</div>
+
+<p>
+很多人认为这体现了 Go 简洁高效的特点。
+某种程度来说，的确如此，如果使用场景是：仅有两个 <code>io.Reader</code> 的使用者，且至少保证有某一个先读的使用者会将内容读取完毕（直至 <code>io.EOF</code> ）。
+</p>
+
+<p>
+首先，为什么这个写法对于超过两个 <code>io.Reader</code> 的使用者就不简洁高效了？
+我们这里假定有 n 个使用者 (n &gt; 2)。
+一是因为需要 n - 1 次的调用，当然这点可以很简单地被更好的 <code>ReplicateReader()</code> 的定义解决，换为 <code>func(r io.Reader, n int) []io.Reader</code> 即可。
+二则是因为这种写法为每一个 <code>io.TeeReader()</code> 都要准备单独的 buffer ，既然有 n - 1 次 <code>io.TeeReader()</code> 的调用当然也就需要有 n - 1 个独立的 buffer 了，这在内存上就不够高效了（毕竟存储的都是来自同一 <code>io.Reader</code> 的内容）。
+</p>
+
+<p>
+其次为什么需要保证有某一个先读的使用者将内容读取完毕呢？
+因为 <code>io.TeeReader()</code> 其实是有“主动”、“从动”之分的，以之前这个 <code>ReplicateReader()</code> 写法为例，这里返回的 <code>r2</code> (<code>buf</code>) 的内容是来自于 <code>r1</code> (<code>teeR</code>) 读取过的。
+这就要求这个“主动”的 <code>io.Reader</code> 的使用者必须要先行读取内容，不然别人就没内容可读；另外它还得读取完所有内容，因为别人无法读到比它更多的内容。
+对于 n 个使用者，当然我们可以优化到仅要求其中 1 个使用者来使用返回的“主动”的这个 <code>io.Reader</code> 剩下的使用者则使用返回的其它“从动”的 <code>io.Reader</code> 即可，甚至于为了 <code>ReplicateReader()</code> 调用者方便还可以将这个“主动”的使用者内置不予返回而返回额外的 n 个“从动”的 <code>io.Reader</code> 由 <code>ReplicateReader</code> 来确保这个“主动”使用者的行为。
+这样要么对使用场景有要求，要么就不那么高效（多出一个隐藏的使用者）。
+</p>
+
+<p>
+想要实现一个更高效的 <code>ReplicateReader()</code> 可以采用以下做法：
+</p>
+<ol class="org-ol">
+<li>返回的每个 <code>io.Reader</code> 独自维护自己的 <code>offset</code> 但共用一个 <code>buffer</code></li>
+<li>若 <code>buffer</code> 还有当前 <code>io.Reader</code> 未读取的内容 (<code>offset &lt; len(buffer)</code>) 则（仅）从 <code>buffer</code> 剩余内容读取</li>
+<li>若 <code>buffer</code> 中内容目前已全被当前 <code>io.Reader</code> 读取 (<code>offset == len(buffer)</code>) ，则从原始的 <code>io.Reader</code> 中读取并将内容追加到 <code>buffer</code> 中，如遇 <code>io.EOF</code> 则对 <code>buffer</code> 标记 EOF （将 EOF 视为一种特殊的从原始 <code>io.Reader</code> 读取到的内容）</li>
+</ol>
+
+<p>
+在这个最简单的策略下我们可以保证这些 <code>ReplicateReader()</code> 返回的 <code>io.Reader</code> 的内容的正确性以及完整性（不论它们的使用者以何种顺序如何读取），并且使用 1 个公共的 <code>buffer</code> + n 个 <code>offset</code> 代替了原来的 n 个独立的 buffer 。
+当然就目前而言，这个 <code>buffer</code> 如同貔貅一样只增不减，我们可以进行更进一步的优化。
+简单想想就能够意识到其实 <code>buffer</code> 仅需要维护读的最靠前和最靠后的两个 <code>io.Reader</code> 之间的内容即可，并且更进一步的，因为最靠后的使用者读到的内容正是当前 <code>buffer</code> 中的所有内容所以我们也可以认为 <code>buffer</code> 需要维护的是最靠前的 <code>io.Reader</code> 之后的内容。
+但一旦想到这里，另一个问题也就浮上了水面：如果有某个使用者提前退出了，那么它的 <code>io.Reader</code> 的 offset 就不会再更新了，因而我们也要为这些使用者设计一种退出机制。
+</p>
+
+<p>
+先对 <code>ReplicateReader()</code> 的定义做一下优化，将它定义为 <code>func(r io.Reader, n int) []io.ReadCloser</code> ，这里返回的 <code>io.ReadCloser</code> 的 <code>Close()</code> 是用来标记它提前结束使用的，不过按照 Go 惯常的使用方式读取完毕到 <code>io.EOF</code> 后再调用 <code>Close()</code> 也是兼容的。
+既然为使用者引入了退出机制，就可以接着引入其它新的优化策略了：
+</p>
+<ol class="org-ol">
+<li value="4">引入优先级队列来管理各个 <code>offset</code> ，采用小顶堆，因为我们关心的是最靠前的 <code>offset</code></li>
+<li>返回的 <code>io.ReadCloser</code> 的 <code>Close()</code> 调用时会将当前使用者从优先级队列中移出</li>
+<li>为 <code>buffer</code> 引入 <code>base</code> 并修改规则 2. 和 3. 的比对条件，如果最靠前的 <code>offset</code> 在 <code>buffer</code> 中对应位置已经在后半部分则将 <code>buffer</code> 中的内容前移并更新 <code>base</code></li>
+<li>如果仅剩一个使用者，当它从原始的 <code>io.Reader</code> 中读取时，就不必再将读到的内容拷贝至 <code>buffer</code> 了</li>
+</ol>
+
+<p>
+我按照这个策略实现了一版 <code>ReplicateReader()</code> 放在 <a href="https://github.com/FreeBirdLjj/dcdn/blob/main/pkg/io/repreader.go">repreader.go</a> ，欢迎取用。
+</p>
+
+<p>
+P.S. <a href="https://pkg.go.dev/io#Writer"><code>io.Writer</code> 的文档</a>中要求如果没能一次性写入就必须返回一个错误（也就是说没错误的话必须写完传入的内容），不过幸好 <code>io.Reader</code> 没这要求不然读取操作的实现还得更复杂些。
+</p>
+
+<blockquote>
+<p>
+Write must return a non-nil error if it returns n &lt; len(p).
+</p>
+</blockquote>
+</div>
+</body>
+</html>

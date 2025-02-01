@@ -14,8 +14,8 @@
   <link>https://freebirdljj.github.io</link>
   <description><![CDATA[]]></description>
   <language>en</language>
-  <pubDate>Sun, 19 Jan 2025 11:44:44 +0800</pubDate>
-  <lastBuildDate>Sun, 19 Jan 2025 11:44:44 +0800</lastBuildDate>
+  <pubDate>Sat, 01 Feb 2025 14:53:57 +0800</pubDate>
+  <lastBuildDate>Sat, 01 Feb 2025 14:53:57 +0800</lastBuildDate>
   <generator>Emacs 29.4 Org-mode 9.7.20</generator>
   <webMaster>freebirdljj@gmail.com (FreeBirdLjj)</webMaster>
   <image>
@@ -24,6 +24,15 @@
     <link>https://freebirdljj.github.io</link>
   </image>
 
+  <item>
+    <title>How To Replicate A Reader In Go</title>
+    <link>https://freebirdljj.github.io/posts/How To Replicate A Reader In Go.org</link>
+    <author>freebirdljj@gmail.com (FreeBirdLjj)</author>
+    <guid isPermaLink="false">https://freebirdljj.github.io/posts/How To Replicate A Reader In Go.org</guid>
+    <pubDate>Sat, 01 Feb 2025 14:52:00 +0800</pubDate>
+
+    <description><![CDATA[]]></description>
+  </item>
   <item>
     <title>How To Add Proxy Support To An Existing Service (In Docker Compose)</title>
     <link>https://freebirdljj.github.io/posts/How To Add Proxy Support To An Existing Service (In Docker Compose).html</link>
